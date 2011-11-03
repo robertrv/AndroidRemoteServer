@@ -57,16 +57,12 @@ public class AppServer extends Application {
 	public void onCreate() {
 		super.onCreate(); 
 
-		if (firstRun())
+		if (isFirstRun()) {
 			createBinary();
+		}
 	}
 
-	/**
-	 * First run.
-	 * 
-	 * @return true, if successful
-	 */
-	public boolean firstRun()
+	public boolean isFirstRun()
 	{
 		int versionCode = 0;
 		try {

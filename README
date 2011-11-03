@@ -1,3 +1,25 @@
-Workspace del proyecto Android AndroidRemoteServer.
-Esta carpeta contiene el codigo fuente del proyecto.
-Proyecto alojado en http://code.google.com/p/androidremote-server/.
+This is a port and trying to update the current work done in 
+http://code.google.com/p/androidremote-server/
+
+Introduction
+============
+
+This server is used in combination with AndroidRemoteClient.
+
+The idea is to manage remotely the device, likely to install, manage, 
+start-stop new applications.
+
+The workflow is like follows:
+ - You install the current application (AndroidRemoteServer.apk) inside any 
+ android device (see dependencies)
+ - Then you can start the server in order to listen for VNC connections.
+ - 
+
+Dependencies
+============
+
+In order to execute it you need a rooted device with busybox
+ (http://busybox.net/) available on your path.
+ 
+The VNC server is based on http://libvncserver.sourceforge.net/ which is used 
+with android NDK to execute it. 
