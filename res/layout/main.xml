@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="fill_parent"
+	android:stretchColumns="1">
+
+	<TableRow>
+
+		<TextView android:textSize="30sp" android:text="Android Remote"
+			android:id="@+id/idTitulo" android:layout_width="wrap_content"
+			android:layout_height="wrap_content" android:paddingTop="10dp" android:paddingLeft="30dp"
+			android:shadowDy="1.0" android:shadowRadius="0.5"
+			android:shadowColor="#111">
+		</TextView>
+	</TableRow>
+
+
+	<TableRow>
+		<LinearLayout android:orientation="horizontal"
+			android:layout_width="fill_parent" android:layout_height="fill_parent">
+
+			<TextView android:layout_height="wrap_content" android:id="@+id/titulo_vnc"
+				android:layout_width="wrap_content" android:text="@string/vncTitle"
+				android:layout_column="1" android:paddingRight="20dp">
+			</TextView>
+			<Button android:textSize="15sp" android:id="@+id/Button01"
+				android:layout_height="wrap_content" android:text="Iniciar"
+				android:layout_width="wrap_content" android:layout_marginTop="5dp" android:layout_marginRight="20dp"
+				android:background="@drawable/btnstart_normal" android:textColor="#fff"
+				android:shadowDy="1.0" android:shadowRadius="0.5"
+				android:shadowColor="#111">
+			</Button>
+			<Button android:textSize="15sp" android:id="@+id/Button02"
+				android:layout_height="wrap_content" android:text="Parar"
+				android:layout_width="wrap_content" android:layout_marginTop="5dp"
+				android:background="@drawable/btnstop" android:textColor="#fff"
+				android:shadowDy="1.0" android:shadowRadius="0.5"
+				android:shadowColor="#111">
+			</Button>
+		</LinearLayout>
+	</TableRow>
+	<TableRow>
+		<LinearLayout android:orientation="horizontal"
+			android:layout_width="fill_parent" android:layout_height="fill_parent">
+			<TextView android:textSize="15sp" android:text="@+id/TextView01"
+				android:id="@+id/stateLabel" android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:paddingTop="1dp"
+				android:shadowDy="1.0" android:shadowRadius="0.5" android:paddingRight="20dp"
+				android:shadowColor="#111">
+			</TextView>
+			<TextView android:textSize="15sp" android:text="@+id/TextView02"
+				android:id="@+id/TextView01" android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:paddingTop="1dp"
+				android:shadowDy="1.0" android:shadowRadius="0.5"
+				android:shadowColor="#111" android:gravity="center">
+			</TextView>
+		</LinearLayout>
+	</TableRow>
+	<TableRow>
+		<LinearLayout android:orientation="horizontal"
+			android:layout_width="fill_parent" android:layout_height="fill_parent">
+
+			<TextView android:layout_height="wrap_content" android:id="@+id/titulo_gestion"
+				android:layout_width="wrap_content" android:text="Servidor de gestion"
+				android:layout_column="1" android:paddingRight="20dp">
+			</TextView>
+			<Button android:textSize="15sp" android:id="@+id/ButtonGestionStart"
+				android:layout_height="wrap_content" android:text="Iniciar"
+				android:layout_width="wrap_content" android:layout_marginTop="5dp" android:layout_marginRight="20dp"
+				android:background="@drawable/btnstart_normal" android:textColor="#fff"
+				android:shadowDy="1.0" android:shadowRadius="0.5"
+				android:shadowColor="#111">
+			</Button>
+			<Button android:textSize="15sp" android:id="@+id/ButtonGestionStop"
+				android:layout_height="wrap_content" android:text="Parar"
+				android:layout_width="wrap_content" android:layout_marginTop="5dp"
+				android:background="@drawable/btnstop" android:textColor="#fff"
+				android:shadowDy="1.0" android:shadowRadius="0.5"
+				android:shadowColor="#111">
+			</Button>
+		</LinearLayout>
+	</TableRow>
+	<TableRow>
+		<LinearLayout android:orientation="horizontal"
+			android:layout_width="fill_parent" android:layout_height="fill_parent">
+			<TextView android:textSize="15sp" android:text="@+id/TextViewGestion01"
+				android:id="@+id/stateGestionLabel" android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:paddingTop="1dp"
+				android:shadowDy="1.0" android:shadowRadius="0.5" android:paddingRight="20dp"
+				android:shadowColor="#111">
+			</TextView>
+			<TextView android:textSize="15sp" android:text="@+id/TextViewGestion02"
+				android:id="@+id/TextViewGestion01" android:layout_width="wrap_content"
+				android:layout_height="wrap_content" android:paddingTop="1dp"
+				android:shadowDy="1.0" android:shadowRadius="0.5"
+				android:shadowColor="#111" android:gravity="center">
+			</TextView>
+		</LinearLayout>
+	</TableRow>
+</TableLayout>    
