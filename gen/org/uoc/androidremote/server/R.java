@@ -105,9 +105,10 @@ containing a value of this type.
     }
     public static final class string {
         public static final int app_name=0x7f050000;
-        public static final int titulo=0x7f050001;
-        public static final int titulo_vnc=0x7f050002;
-        public static final int vncTitle=0x7f050003;
+        public static final int managementTitle=0x7f050002;
+        public static final int startText=0x7f050003;
+        public static final int stopText=0x7f050004;
+        public static final int vncTitle=0x7f050001;
     }
     public static final class styleable {
         /** Attributes that can be used with a com_admob_android_ads_AdView.

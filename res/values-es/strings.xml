@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="vncTitle">Servidor VNC</string>
+    <string name="managementTitle">Servidor de gestión</string>
+    <string name="startText">Iniciar</string>
+    <string name="stopText">Parar</string>
 </resources>

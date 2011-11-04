@@ -46,6 +46,8 @@
 <item>On</item>
 <item>Off</item>
 </string-array>
-<string name="titulo">Titulo</string>
-<string name="titulo_vnc">VNC</string>       
+	<string name="vncTitle">VNC server</string>
+	<string name="managementTitle">Management server</string>
+	<string name="startText">Start</string>
+	<string name="stopText">Stop</string>    
 </resources>

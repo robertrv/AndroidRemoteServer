@@ -22,19 +22,36 @@
 				android:layout_width="wrap_content" android:text="@string/vncTitle"
 				android:layout_column="1" android:paddingRight="20dp">
 			</TextView>
-			<Button android:textSize="15sp" android:id="@+id/Button01"
-				android:layout_height="wrap_content" android:text="Iniciar"
-				android:layout_width="wrap_content" android:layout_marginTop="5dp" android:layout_marginRight="20dp"
-				android:background="@drawable/btnstart_normal" android:textColor="#fff"
-				android:shadowDy="1.0" android:shadowRadius="0.5"
-				android:shadowColor="#111">
+
+			<Button
+			    android:id="@+id/Button01"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_marginRight="20dp"
+			    android:layout_marginTop="5dp"
+			    android:background="@drawable/btnstart_normal"
+			    android:shadowColor="#111"
+			    android:shadowDy="1.0"
+			    android:shadowRadius="0.5"
+			    android:text="@string/startText"
+			    android:textColor="#fff"
+			    android:textSize="15sp" >
+
 			</Button>
-			<Button android:textSize="15sp" android:id="@+id/Button02"
-				android:layout_height="wrap_content" android:text="Parar"
-				android:layout_width="wrap_content" android:layout_marginTop="5dp"
-				android:background="@drawable/btnstop" android:textColor="#fff"
-				android:shadowDy="1.0" android:shadowRadius="0.5"
-				android:shadowColor="#111">
+
+			<Button
+			    android:id="@+id/Button02"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_marginTop="5dp"
+			    android:background="@drawable/btnstop"
+			    android:shadowColor="#111"
+			    android:shadowDy="1.0"
+			    android:shadowRadius="0.5"
+			    android:text="@string/stopText"
+			    android:textColor="#fff"
+			    android:textSize="15sp" >
+
 			</Button>
 		</LinearLayout>
 	</TableRow>
@@ -59,23 +76,45 @@
 		<LinearLayout android:orientation="horizontal"
 			android:layout_width="fill_parent" android:layout_height="fill_parent">
 
-			<TextView android:layout_height="wrap_content" android:id="@+id/titulo_gestion"
-				android:layout_width="wrap_content" android:text="Servidor de gestion"
-				android:layout_column="1" android:paddingRight="20dp">
+			<TextView
+			    android:id="@+id/titulo_gestion"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_column="1"
+			    android:paddingRight="20dp"
+			    android:text="@string/managementTitle" >
+
 			</TextView>
-			<Button android:textSize="15sp" android:id="@+id/ButtonGestionStart"
-				android:layout_height="wrap_content" android:text="Iniciar"
-				android:layout_width="wrap_content" android:layout_marginTop="5dp" android:layout_marginRight="20dp"
-				android:background="@drawable/btnstart_normal" android:textColor="#fff"
-				android:shadowDy="1.0" android:shadowRadius="0.5"
-				android:shadowColor="#111">
+
+			<Button
+			    android:id="@+id/ButtonGestionStart"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_marginRight="20dp"
+			    android:layout_marginTop="5dp"
+			    android:background="@drawable/btnstart_normal"
+			    android:shadowColor="#111"
+			    android:shadowDy="1.0"
+			    android:shadowRadius="0.5"
+			    android:text="@string/startText"
+			    android:textColor="#fff"
+			    android:textSize="15sp" >
+
 			</Button>
-			<Button android:textSize="15sp" android:id="@+id/ButtonGestionStop"
-				android:layout_height="wrap_content" android:text="Parar"
-				android:layout_width="wrap_content" android:layout_marginTop="5dp"
-				android:background="@drawable/btnstop" android:textColor="#fff"
-				android:shadowDy="1.0" android:shadowRadius="0.5"
-				android:shadowColor="#111">
+
+			<Button
+			    android:id="@+id/ButtonGestionStop"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_marginTop="5dp"
+			    android:background="@drawable/btnstop"
+			    android:shadowColor="#111"
+			    android:shadowDy="1.0"
+			    android:shadowRadius="0.5"
+			    android:text="@string/stopText"
+			    android:textColor="#fff"
+			    android:textSize="15sp" >
+
 			</Button>
 		</LinearLayout>
 	</TableRow>
