@@ -19,7 +19,6 @@ package org.uoc.androidremote.operations;
 
 import java.io.Serializable;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class Operation.
  * 

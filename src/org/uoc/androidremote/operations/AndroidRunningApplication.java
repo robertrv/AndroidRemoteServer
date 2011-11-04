@@ -19,64 +19,35 @@ package org.uoc.androidremote.operations;
 
 import java.io.Serializable;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class AndroidRunningApplication.
+ * Bean to serialize and deserialize applications running on android device.
  * 
  * @author angel
  */
 public class AndroidRunningApplication implements Serializable, Comparable<AndroidRunningApplication> {
 
-	/** The Constant serialVersionUID. */
 	private static final long serialVersionUID = 1L;
 
-	/** The name. */
 	private String name;
 
-	/** The importance. */
 	private int importance;
 
-	/**
-	 * Gets the name.
-	 * 
-	 * @return the name
-	 */
 	public final String getName() {
 		return name;
 	}
 
-	/**
-	 * Sets the name.
-	 * 
-	 * @param name
-	 *            the new name
-	 */
 	public final void setName(String name) {
 		this.name = name;
 	}
 
-	/**
-	 * Gets the importance.
-	 * 
-	 * @return the importance
-	 */
 	public final int getImportance() {
 		return importance;
 	}
 
-	/**
-	 * Sets the importance.
-	 * 
-	 * @param importance
-	 *            the new importance
-	 */
 	public final void setImportance(int importance) {
 		this.importance = importance;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Comparable#compareTo(java.lang.Object)
-	 */
 	public int compareTo(AndroidRunningApplication o) {
 		AndroidRunningApplication app = o;
 		if (this.importance != app.importance) {
