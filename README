@@ -23,3 +23,16 @@ In order to execute it you need a rooted device with busybox
  
 The VNC server is based on http://libvncserver.sourceforge.net/ which is used 
 with android NDK to execute it. 
+
+Use
+===
+
+In order to use you need an Android rooted device or the Android emulator. In 
+case of an Android rooted device just have to install and execute. 
+In case of Android emulator, you can use
+	prepare.sh ${avd} # Should be executed from project home folder
+And then just install the AndroidRemoteServer.apk directly and execute it.
+
+Once is executing simply you can execute the AndroidRemoteClient and connect to 
+localhost with default port (5901). Also you can connect through any VPN client
+to the server through localhost and the previous port.

@@ -84,9 +84,11 @@ import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.text.ClipboardManager;
 import android.util.Log;
 import android.view.Menu;
@@ -99,7 +101,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * The Class ActivityServer.
+ * Main android activity responsible for starting and stopping android servers
  */
 public class ActivityServer extends Activity {
 	
@@ -110,7 +112,8 @@ public class ActivityServer extends Activity {
 	private static final int APP_ID = 1206;
 	
 	/** The SOCKE t_ address. */
-	public static String SOCKET_ADDRESS = "/data/data/org.uoc.androidremote.server.localsocket";
+	public static String SOCKET_ADDRESS = 
+			"/data/data/org.uoc.androidremote.server.localsocket";
 
 	/** The dialog. */
 	ProgressDialog dialog = null;
@@ -124,24 +127,15 @@ public class ActivityServer extends Activity {
 	/** The Constant PORT. */
 	private static final int PORT = 5000;
 
-	/** The handler. */
-	private Handler handler = new Handler();
-
 	/** The socket. */
 	private ServerSocket socket;
 	
 	/** The send. */
 	private Socket send;
 
-	/** The hilo gestion. */
-	private Thread hiloGestion;
+	/** The management thread. */
+	private Thread managementThread;
 	
-	/** The hilo gestion state. */
-	private boolean hiloGestionState = false;
-
-	/* (non-Javadoc)
-	 * @see android.app.Activity#onDestroy()
-	 */
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
@@ -195,35 +189,27 @@ public class ActivityServer extends Activity {
 		SocketListener s = new SocketListener();
 		s.start();
 
-		setStateLabels(isAndroidServerRunning(), hiloGestionState);
-
-		comprobarBusybox();
+		setStateLabels();
 
 		findViewById(R.id.Button01).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				startServerButtonClicked();
-				return;
+				startVncServerOnDifferentThread();
+				SystemClock.sleep(500);
+				setStateLabels();
 			}
 		});
 		findViewById(R.id.Button02).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				if (!isAndroidServerRunning()) {
+				if (!isVncServerRunning()) {
 					showTextOnScreen("Server is not running");
 					return;
 				}
 
-				// prepareWatchdog("Stopping server. Please wait...","Couldn't Stop server",false);
-
-				Thread t = new Thread() {
-					public void run() {
-						stopServer();
-					}
-				};
-				t.start();
-
-				return;
+				stopVncServer();
+				SystemClock.sleep(500);
+				setStateLabels();
 			}
 		});
 
@@ -231,10 +217,9 @@ public class ActivityServer extends Activity {
 				new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
-						if (hiloGestion == null) {
+						if (!isManagementServerRunning()) {
 							Log.i("AndroidRemote", "HILO NULL");
-							hiloGestionState = true;
-							startServerGestionButtonClicked();
+							startManagementServer();
 							return;
 						}
 					}
@@ -243,22 +228,26 @@ public class ActivityServer extends Activity {
 				new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
-						if (hiloGestion == null) {
+						if (!isManagementServerRunning()) {
 							showTextOnScreen("Server is not running");
 							return;
 						}
 
 						// prepareWatchdog("Stopping server. Please wait...","Couldn't Stop server",false);
 
-						hiloGestion.stop();
-						// hiloGestion.destroy();
-						hiloGestion = null;
-						hiloGestionState = false;
-						setStateLabels(isAndroidServerRunning(),
-								hiloGestion != null);
+						managementThread.stop();
+						managementThread = null;
+						setStateLabels();
 						return;
 					}
 				});
+		findViewById(R.id.refreshButton).setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				setStateLabels();
+			}
+		});
 	}
 
 	/**
@@ -278,9 +267,9 @@ public class ActivityServer extends Activity {
 	 */
 	public boolean comprobarBusybox() {
 		boolean has = hasBusybox();
+		startDialog = new AlertDialog.Builder(this).create();
 		if (!has) {
 			Log.v("VNC", "Busybox not found...!!!");
-			startDialog = new AlertDialog.Builder(this).create();
 			startDialog.setTitle("Cannot continue");
 			startDialog
 					.setMessage("I didn't found busybox in your device, do you want to install it from the market?\nYou can try to run without it.\n(I am not responsible for this application)");
@@ -337,26 +326,34 @@ public class ActivityServer extends Activity {
 		return true;
 	}
 
+	
+	/**
+	 * Set the state labels depending on current status of sockets and internal
+	 * server information.
+	 */
+	public void setStateLabels() {
+		setStateLabels(isVncServerRunning(), isManagementServerRunning());
+	}
 	/**
 	 * Sets the state labels.
 	 * 
-	 * @param stateVNC
+	 * @param runningVnc
 	 *            the state vnc
-	 * @param stateGestion
+	 * @param runningManagement
 	 *            the state gestion
 	 */
-	public void setStateLabels(boolean stateVNC, boolean stateGestion) {
+	public void setStateLabels(boolean runningVnc, boolean runningManagement) {
 		TextView stateLabel = (TextView) findViewById(R.id.stateLabel);
-		stateLabel.setText(stateVNC ? "Running" : "Stopped");
-		stateLabel.setTextColor(stateVNC ? Color.GREEN : Color.RED);
+		stateLabel.setText(runningVnc ? "Running" : "Stopped");
+		stateLabel.setTextColor(runningVnc ? Color.GREEN : Color.RED);
 
 		Button btnStart = (Button) findViewById(R.id.Button01);
 		Button btnStop = (Button) findViewById(R.id.Button02);
-		btnStart.setEnabled(!stateVNC);
-		btnStop.setEnabled(stateVNC);
+		btnStart.setEnabled(!runningVnc);
+		btnStop.setEnabled(runningVnc);
 		TextView t = (TextView) findViewById(R.id.TextView01);
 
-		if (stateVNC) {
+		if (runningVnc) {
 			String port = "5901";
 			String httpport;
 			try {
@@ -374,20 +371,21 @@ public class ActivityServer extends Activity {
 			} else {
 				t.setText("http://" + ip + ":" + httpport+"\n IP:"+ip+" Port: "+port);
 			}
-		} else
-			t.setText("");
+		} else {
+			t.setText("");			
+		}
 
 		TextView stateGestionLabel = (TextView) findViewById(R.id.stateGestionLabel);
-		stateGestionLabel.setText(stateGestion ? "Running" : "Stopped");
-		stateGestionLabel.setTextColor(stateGestion ? Color.GREEN : Color.RED);
+		stateGestionLabel.setText(runningManagement ? "Running" : "Stopped");
+		stateGestionLabel.setTextColor(runningManagement ? Color.GREEN : Color.RED);
 
 		Button btnStartGestion = (Button) findViewById(R.id.ButtonGestionStart);
 		Button btnStopGestion = (Button) findViewById(R.id.ButtonGestionStop);
-		btnStartGestion.setEnabled(!stateGestion);
-		btnStopGestion.setEnabled(stateGestion);
+		btnStartGestion.setEnabled(!runningManagement);
+		btnStopGestion.setEnabled(runningManagement);
 		TextView tGestion1 = (TextView) findViewById(R.id.TextViewGestion01);
 
-		if (stateGestion) {
+		if (runningManagement) {
 
 			String ip = getIpAddress();
 			if (ip.equals("")) {
@@ -395,9 +393,9 @@ public class ActivityServer extends Activity {
 			} else {
 				tGestion1.setText("IP: " + ip + " Puerto: " + PORT);
 			}
-		} else
-			tGestion1.setText("");
-
+		} else {
+			tGestion1.setText("");			
+		}
 	}
 
 	/**
@@ -427,7 +425,7 @@ public class ActivityServer extends Activity {
 	/**
 	 * Stop server.
 	 */
-	public void stopServer() {
+	public void stopVncServer() {
 		try {
 			Process sh;
 
@@ -468,8 +466,8 @@ public class ActivityServer extends Activity {
 	/**
 	 * Start server button clicked.
 	 */
-	public void startServerButtonClicked() {
-		if (isAndroidServerRunning())
+	public void startVncServerOnDifferentThread() {
+		if (isVncServerRunning())
 			showTextOnScreen("Server is already running, stop it first");
 		else {
 			// prepareWatchdog("Starting server. Please wait...","Couldn't Start server",
@@ -477,7 +475,7 @@ public class ActivityServer extends Activity {
 
 			Thread t = new Thread() {
 				public void run() {
-					startServer();
+					startVncServer();
 				}
 			};
 			t.start();
@@ -487,17 +485,21 @@ public class ActivityServer extends Activity {
 	/**
 	 * Start server gestion button clicked.
 	 */
-	public void startServerGestionButtonClicked() {
-		hiloGestion = new Thread(new ServerThread());
-		hiloGestion.start();
-		Log.i("AndroidRemote", "Servidor arrancado");
-		setStateLabels(isAndroidServerRunning(), hiloGestionState);
+	public void startManagementServer() {
+		if (!isManagementServerRunning()) {
+			managementThread = new Thread(new ServerThread());
+			managementThread.start();
+			Log.i("AndroidRemote", "Management server started");
+			setStateLabels();			
+		} else {
+			showTextOnScreen(getString(R.string.managementServerStillRunning));
+		}
 	}
 
 	/**
 	 * Start server.
 	 */
-	public void startServer() {
+	public void startVncServer() {
 		try {
 			Process sh;
 
@@ -564,13 +566,12 @@ public class ActivityServer extends Activity {
 		}
 		return true;
 	}
+	
+	private boolean isManagementServerRunning() {
+		return managementThread != null;
+	}
 
-	/**
-	 * Checks if is android server running.
-	 * 
-	 * @return true, if is android server running
-	 */
-	public boolean isAndroidServerRunning() {
+	private boolean isVncServerRunning() {
 		String result = "";
 		Process sh;
 		try {
@@ -603,12 +604,7 @@ public class ActivityServer extends Activity {
 		return false;
 	}
 
-	/**
-	 * Checks for root permission.
-	 * 
-	 * @return true, if successful
-	 */
-	public boolean hasRootPermission() {
+	private boolean hasRootPermission() {
 		boolean rooted = true;
 		try {
 			File su = new File("/system/bin/su");
@@ -677,7 +673,7 @@ public class ActivityServer extends Activity {
 					.getParcelableExtra(ConnectivityManager.EXTRA_NETWORK_INFO);
 			if (info.getType() == ConnectivityManager.TYPE_MOBILE
 					|| info.getType() == ConnectivityManager.TYPE_WIFI) {
-				setStateLabels(isAndroidServerRunning(), hiloGestionState);
+				setStateLabels();
 			}
 
 		}
@@ -947,7 +943,6 @@ public class ActivityServer extends Activity {
 		 */
 		public void run() {
 			try {
-
 				socket = new ServerSocket(PORT);
 				Log.i("AndroidRemote", "Puerto: " + PORT);
 				batteryLevel();
@@ -967,7 +962,7 @@ public class ActivityServer extends Activity {
 						os.flush();
 						switch (o.getId()) {
 						case Operation.OP_OPEN:
-							os.writeObject(new String("Conexi√≥n establecida"));
+							os.writeObject(new String("Conexión establecida"));
 							showClientConnected(o.getMessage() + " "
 									+ send.getInetAddress());
 							break;
@@ -991,6 +986,7 @@ public class ActivityServer extends Activity {
 							Integer level = getBatteryStatus();
 							os.writeObject(level);
 							break;
+							
 						default:
 							break;
 						}
@@ -1002,18 +998,18 @@ public class ActivityServer extends Activity {
 						send.close();
 
 					} catch (Exception e) {
-						Log.e("AndroidRemote", e.getMessage());
+						Log.e("AndroidRemote",
+								"Unexpected error on management server", e);
 					}
 
 				}
 
 			} catch (SocketException e) {
 				Log.e("AndroidRemote", "Detectada socket exception");
-				this.run();
 			} catch (IOException e) {
 				Log.e("AndroidRemote", "Detectada exception entrada salida "
 						+ e.getMessage());
-			}
+			}	
 		}
 	}
 }

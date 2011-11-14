@@ -46,7 +46,8 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 /**
- * The Class AppServer.
+ * Mainly takes care of preparing the environment to run the two servers on the 
+ * device
  */
 public class AppServer extends Application {
 

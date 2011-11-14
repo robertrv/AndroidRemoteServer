@@ -4,4 +4,5 @@
     <string name="managementTitle">Servidor de gestión</string>
     <string name="startText">Iniciar</string>
     <string name="stopText">Parar</string>
+    <string name="refresh">Refresca status</string>
 </resources>
