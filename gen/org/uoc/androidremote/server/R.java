@@ -81,16 +81,13 @@ containing a value of this type.
         public static final int Button02=0x7f080003;
         public static final int ButtonGestionStart=0x7f080008;
         public static final int ButtonGestionStop=0x7f080009;
-        public static final int TextView01=0x7f080005;
+        public static final int TextView01=0x7f080004;
         public static final int TextView02=0x7f080006;
-        public static final int TextViewGestion01=0x7f08000b;
+        public static final int TextViewGestion01=0x7f08000a;
         public static final int TextViewGestion02=0x7f08000c;
         public static final int idTitulo=0x7f080000;
-        public static final int lastRow=0x7f08000d;
-        public static final int refreshButton=0x7f08000f;
-        public static final int refreshLayout=0x7f08000e;
-        public static final int stateGestionLabel=0x7f08000a;
-        public static final int stateLabel=0x7f080004;
+        public static final int stateGestionLabel=0x7f08000b;
+        public static final int stateLabel=0x7f080005;
         public static final int titulo_gestion=0x7f080007;
         public static final int titulo_vnc=0x7f080001;
     }
@@ -104,17 +101,13 @@ containing a value of this type.
         public static final int androidvncserver=0x7f040000;
         public static final int busybox=0x7f040001;
         public static final int indexvnc=0x7f040002;
-        public static final int su=0x7f040003;
-        public static final int vncviewer=0x7f040004;
+        public static final int vncviewer=0x7f040003;
     }
     public static final class string {
         public static final int app_name=0x7f050000;
-        public static final int managementServerStillRunning=0x7f050006;
         public static final int managementTitle=0x7f050002;
-        public static final int refresh=0x7f050007;
         public static final int startText=0x7f050003;
         public static final int stopText=0x7f050004;
-        public static final int vncServerStillRunning=0x7f050005;
         public static final int vncTitle=0x7f050001;
     }
     public static final class styleable {
