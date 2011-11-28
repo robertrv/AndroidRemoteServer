@@ -1,6 +1,3 @@
-gen*
 build*
 *codepro*
 obj
-bin*
-*.setup
