@@ -1,7 +1,4 @@
-bin*
 gen*
 build*
 *codepro*
 obj
-R.java
-*.setup
