@@ -84,10 +84,8 @@ import android.net.LocalServerSocket;
 import android.net.LocalSocket;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.BatteryManager;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.SystemClock;
 import android.text.ClipboardManager;
 import android.util.Log;
@@ -255,7 +253,7 @@ public class ActivityServer extends Activity {
 	 * 
 	 * @return true, if successful
 	 */
-	public boolean hasBusybox() {
+	public static boolean hasBusybox() {
 		File busyboxFile = findExecutableOnPath("busybox");
 		return busyboxFile != null;
 	}
@@ -571,15 +569,18 @@ public class ActivityServer extends Activity {
 		return managementThread != null;
 	}
 
-	private boolean isVncServerRunning() {
+	private static boolean isVncServerRunning() {
 		String result = "";
 		Process sh;
 		try {
 			if (hasBusybox()) {
 				sh = Runtime.getRuntime().exec("busybox ps w");
 			} else {
-				if (findExecutableOnPath("ps") == null)
-					showTextOnScreen("I cant find the ps executable, please install busybox or i'm wont be able to check server state");
+				if (findExecutableOnPath("ps") == null) {
+					new RuntimeException(
+						"I cant find the ps executable, please install busybox " +
+						"or i'm wont be able to check server state");					
+				}
 				sh = Runtime.getRuntime().exec("ps");
 			}
 
@@ -882,7 +883,7 @@ public class ActivityServer extends Activity {
 			// get a list of installed apps.
 			List<ApplicationInfo> packages = pm
 					.getInstalledApplications(PackageManager.GET_META_DATA);
-			for (Iterator iterator = packages.iterator(); iterator.hasNext();) {
+			for (Iterator<ApplicationInfo> iterator = packages.iterator(); iterator.hasNext();) {
 				ApplicationInfo applicationInfo = (ApplicationInfo) iterator
 						.next();
 				AndroidApplication app = new AndroidApplication(
@@ -962,7 +963,7 @@ public class ActivityServer extends Activity {
 						os.flush();
 						switch (o.getId()) {
 						case Operation.OP_OPEN:
-							os.writeObject(new String("Conexi—n establecida"));
+							os.writeObject(new String("Conexiï¿½n establecida"));
 							showClientConnected(o.getMessage() + " "
 									+ send.getInetAddress());
 							break;
