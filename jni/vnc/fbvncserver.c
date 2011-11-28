@@ -125,11 +125,11 @@ static void init_fb(void)
          
     update_fb_info();
     
-      if (ioctl(fbfd, FBIOGET_FSCREENINFO, &fscrinfo) != 0)
-  {
+    if (ioctl(fbfd, FBIOGET_FSCREENINFO, &fscrinfo) != 0)
+    {
       __android_log_print(ANDROID_LOG_INFO,"VNC","ioctl error\n");
       exit(EXIT_FAILURE);
-  }
+    }
     
     bytespp = scrinfo.bits_per_pixel /CHAR_BIT;
     
@@ -141,9 +141,6 @@ static void init_fb(void)
      
      __android_log_print(ANDROID_LOG_INFO,"VNC","colourmap_rgb=%d:%d:%d    lenght=%d:%d:%d",scrinfo.red.offset,scrinfo.green.offset,scrinfo.blue.offset,scrinfo.red.length,scrinfo.green.length,scrinfo.blue.length);  
     
-     
-      
-      
     size_t size=scrinfo.yres_virtual;
     if (size<scrinfo.yres*2)
     {
@@ -218,14 +215,14 @@ void send_remote_msg(char *msg)
 
     if (connect(localsocket, (struct sockaddr *)&remote, len) == -1) {
         perror("Couldn't connect to gui");
-	__android_log_print(ANDROID_LOG_INFO,"VNC","Couldn't connect to local socket!\n");
-	return;
+        __android_log_print(ANDROID_LOG_INFO,"VNC","Couldn't connect to local socket!\n");
+        return;
     }
     
     if (send(localsocket, msg, strlen(msg),0) == -1) {
         perror("Couldn't send to gui");
-	__android_log_print(ANDROID_LOG_INFO,"VNC","Couldn't send to local socket!\n");
-	return;
+        __android_log_print(ANDROID_LOG_INFO,"VNC","Couldn't send to local socket!\n");
+        return;
     }
     
     close(localsocket);
@@ -410,6 +407,8 @@ int spec4sh[] = {1,1,1,1,0};
 
 static int keysym2scancode(rfbBool down, rfbKeySym c, rfbClientPtr cl, int *sh, int *alt)
 {
+	__android_log_print(ANDROID_LOG_INFO,"VNC","received");
+
     int real=1;
     if ('a' <= c && c <= 'z')
         return qwerty[c-'a'];
@@ -458,9 +457,11 @@ static int keysym2scancode(rfbBool down, rfbKeySym c, rfbClientPtr cl, int *sh, 
     case 0xFF52: return 103;// up -> DPAD_UP
         // 		case 360: return 232;// end -> DPAD_CENTER (ball click)
     case 0xff50: return KEY_HOME;// home 
-    case 0xFFC8: rfbShutdownServer(cl->screen,TRUE); return 0; //F11 disconnect
+    case 0xFFC8: 
+    	__android_log_print(ANDROID_LOG_INFO,"VNC","F11 shutting down server...");
+    	rfbShutdownServer(cl->screen,TRUE); return 0; //F11 disconnect
     case 0xFFC9:  
-              __android_log_print(ANDROID_LOG_INFO,"VNC","F12 closing...");    
+          __android_log_print(ANDROID_LOG_INFO,"VNC","F12 closing...");    
 	      exit(0); //F10 closes daemon
 	      break;
     case 0xffc1: down?rotate():0; return 0; // F4 rotate 
@@ -635,8 +636,6 @@ void sigproc()
     cleanup_kbd();
     exit(0); /* normal exit status */
 }
-
- 
 
 static void rotate()
 {

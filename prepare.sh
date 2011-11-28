@@ -17,4 +17,5 @@ adb -e push ./res/raw/busybox /system/bin
 adb -e shell chmod 6755 /system/bin/busybox
 adb -e install ./others/SuperUser.apk
 adb forward tcp:5901 tcp:5901
+adb forward tcp:5000 tcp:5000
 
