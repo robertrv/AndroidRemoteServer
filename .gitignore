@@ -2,3 +2,6 @@ gen*
 build*
 *codepro*
 obj
+bin*
+R.java
+*.setup
