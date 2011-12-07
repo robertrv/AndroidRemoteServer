@@ -87,7 +87,6 @@ containing a value of this type.
         public static final int TextViewGestion02=0x7f08000c;
         public static final int idTitulo=0x7f080000;
         public static final int lastRow=0x7f08000d;
-        public static final int refreshButton=0x7f08000f;
         public static final int refreshLayout=0x7f08000e;
         public static final int stateGestionLabel=0x7f08000a;
         public static final int stateLabel=0x7f080004;
@@ -109,12 +108,18 @@ containing a value of this type.
     }
     public static final class string {
         public static final int app_name=0x7f050000;
+        public static final int managementNotRunning=0x7f050008;
         public static final int managementServerStillRunning=0x7f050006;
         public static final int managementTitle=0x7f050002;
-        public static final int refresh=0x7f050007;
+        public static final int mngStarted=0x7f05000b;
+        public static final int mngStopped=0x7f05000c;
+        public static final int refresh=0x7f05000d;
         public static final int startText=0x7f050003;
         public static final int stopText=0x7f050004;
+        public static final int vncNotRunning=0x7f050007;
         public static final int vncServerStillRunning=0x7f050005;
+        public static final int vncStarted=0x7f050009;
+        public static final int vncStopped=0x7f05000a;
         public static final int vncTitle=0x7f050001;
     }
     public static final class styleable {
