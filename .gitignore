@@ -1,7 +1,7 @@
-build*
-*codepro*
+build/*
+.codepro
 obj
-bin*
-gen*
+gen
 R.java
 *.setup
+bin/*

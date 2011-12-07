@@ -1,0 +1,49 @@
+
+/*
+ 1.- Start emulator: 
+		emulator -avd first -partition-size 128
+ 2.- Wait for it
+	adb wait-for-device
+ 3.- Execute some tasks
+	adb remount
+	adb push su /system/bin
+	adb shell chmod 6755 /system/bin/su
+	adb shell rm /system/xbin/su
+	adb shell ln -s /system/bin/su /system/xbin/su
+ 4.- Copy current folder busy box to emulator bin
+	adb /res/raw/busybox /system/bin 
+
+	You can change the name "first" for what ever your avd is named, this is my first emulator.
+	Also you should change the path where busybox is located, we assume is on this place (~/dvl/uoc/AndroidRemoteServerSource/res/raw/busybox) but can be changed
+ more info in: http://russelldavis.blogspot.com/2011/01/rooting-android-emulator.html
+
+ * In order to comunicate from our PC's to the server running inside the emulator the option is to use port forwarding: 
+   adb forward tcp:5901 tcp:5901
+*/
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+buildscript {
+  repositories {
+	mavenRepo urls:'http://repo.smokejumperit.com'
+  }
+  dependencies {
+	classpath 'com.smokejumperit:gradle-plugins:0.8.1-SNAPSHOT'
+  }
+}
+
+apply plugin:com.smokejumperit.gradle.AllPlugins
+
+//buildscript {
+//    // using a variable to make wiki look cleaner
+//    def githubBase = 'https://github.com/valkolovos/gradle_cobertura/raw/master/ivy'
+//    apply from: "${githubBase}/gradle_cobertura/gradle_cobertura/1.0-rc4/coberturainit.gradle"
+//}
+
+task prepareEmulator {
+	println "before"
+	println project.exec
+	//project.exec("ls", "-al", project.buildDir)
+	println "after"
+}
+
