@@ -1,0 +1,290 @@
+package org.uoc.androidremote.server;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.net.SocketException;
+import java.util.Iterator;
+import java.util.List;
+
+import org.uoc.androidremote.operations.AndroidApplication;
+import org.uoc.androidremote.operations.AndroidLocation;
+import org.uoc.androidremote.operations.AndroidRunningApplication;
+import org.uoc.androidremote.operations.AndroidService;
+import org.uoc.androidremote.operations.ApplicationsInstalled;
+import org.uoc.androidremote.operations.ApplicationsRunning;
+import org.uoc.androidremote.operations.Operation;
+import org.uoc.androidremote.operations.ServicesRunning;
+
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningAppProcessInfo;
+import android.app.ActivityManager.RunningServiceInfo;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationManager;
+import android.os.BatteryManager;
+import android.util.Log;
+
+/**
+ * Server thread responsible for management tasks
+ * 
+ * @author robertrv [at] gmail
+ *
+ */
+public class ManagementServer extends Thread {
+	
+	private static final String LOGTAG = ManagementServer.class.getSimpleName();
+
+	private ServerSocket listeningSocket;
+	private boolean keepListening = false;
+	private Socket send;
+	private Context context;
+	
+	private Integer batteryLevel = Integer.valueOf(0);
+	static final int PORT = 5000;
+	
+	public ManagementServer(Context context) {
+		this.context = context;
+	}
+
+	public int getListeningPort() {
+		return PORT;
+	}
+
+	/**
+	 * Gets the applications.
+	 * 
+	 * @return the applications
+	 */
+	private ApplicationsRunning getApplications() {
+		ApplicationsRunning apps = new ApplicationsRunning();
+		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		List<RunningAppProcessInfo> applications = activityManager
+				.getRunningAppProcesses();
+		PackageManager pm = context.getPackageManager();
+		for (RunningAppProcessInfo application : applications) {
+			AndroidRunningApplication a = new AndroidRunningApplication();
+			try {
+				a.setName(pm.getApplicationLabel(
+						pm.getApplicationInfo(application.processName,
+								PackageManager.GET_META_DATA)).toString());
+				a.setImportance(application.importance);
+				apps.addApp(a);
+			} catch (NameNotFoundException e) {
+				Log.e(LOGTAG, "Cannot find Application: "+ application,e);
+			}
+
+		}
+		return apps;
+	}
+
+	/**
+	 * Battery level.
+	 */
+	private void batteryLevel() {
+
+		BroadcastReceiver batteryLevelReceiver = new BroadcastReceiver() {
+			public void onReceive(Context context, Intent intent) {
+
+				int rawlevel = intent.getIntExtra(
+						BatteryManager.EXTRA_LEVEL, -1);
+				int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE,
+						-1);
+				int level = -1;
+				if (rawlevel >= 0 && scale > 0) {
+					level = (rawlevel * 100) / scale;
+				}
+				batteryLevel = level;
+			}
+		};
+		IntentFilter batteryLevelFilter = new IntentFilter(
+				Intent.ACTION_BATTERY_CHANGED);
+		context.registerReceiver(batteryLevelReceiver, batteryLevelFilter);
+	}
+
+	/**
+	 * Gets the battery status.
+	 * 
+	 * @return the battery status
+	 */
+	private Integer getBatteryStatus() {
+		return batteryLevel;
+	}
+
+	/**
+	 * Gets the installed applications.
+	 * 
+	 * @return the installed applications
+	 */
+	private ApplicationsInstalled getInstalledApplications() {
+		ApplicationsInstalled apps = new ApplicationsInstalled();
+		PackageManager pm = context.getPackageManager();
+		// get a list of installed apps.
+		List<ApplicationInfo> packages = pm
+				.getInstalledApplications(PackageManager.GET_META_DATA);
+		for (Iterator<ApplicationInfo> iterator = packages.iterator(); iterator.hasNext();) {
+			ApplicationInfo applicationInfo = (ApplicationInfo) iterator
+					.next();
+			AndroidApplication app = new AndroidApplication(
+					applicationInfo.packageName, pm.getApplicationLabel(
+							applicationInfo).toString());
+			apps.addApp(app);
+		}
+		return apps;
+	}
+
+	/**
+	 * Gets the services running.
+	 * 
+	 * @return the services running
+	 */
+	private ServicesRunning getServicesRunning() {
+		ServicesRunning servicesRunning = new ServicesRunning();
+		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		List<RunningServiceInfo> services = activityManager
+				.getRunningServices(30);
+		PackageManager pm = context.getPackageManager();
+		for (Iterator<RunningServiceInfo> iterator = services.iterator(); iterator
+				.hasNext();) {
+			RunningServiceInfo runningServiceInfo = iterator.next();
+			try {
+				servicesRunning.addService(new AndroidService(
+						runningServiceInfo.pid, pm.getApplicationLabel(
+								pm.getApplicationInfo(
+										runningServiceInfo.process,
+										PackageManager.GET_META_DATA))
+								.toString()));
+			} catch (NameNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return servicesRunning;
+	}
+
+	/**
+	 * Gets the location.
+	 * 
+	 * @return the location
+	 */
+	private AndroidLocation getLocation() {
+		LocationManager mlocManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		Criteria crit = new Criteria();
+		crit.setAccuracy(Criteria.ACCURACY_FINE);
+		String provider = mlocManager.getBestProvider(crit, true);
+		Location loc = mlocManager.getLastKnownLocation(provider);
+		AndroidLocation location = new AndroidLocation(loc.getLatitude(),
+				loc.getAltitude());
+		return location;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Runnable#run()
+	 */
+	public void run() {
+		try {
+			listeningSocket = new ServerSocket(PORT);
+			Log.i(LOGTAG, "Puerto: " + PORT);
+			batteryLevel();
+			
+			keepListening = true;
+			while (keepListening) {
+				ObjectOutputStream os = null;
+				ObjectInputStream in = null;
+				try {
+					// listen for incoming clients
+					send = listeningSocket.accept();
+					os = new ObjectOutputStream(
+							send.getOutputStream());
+					os.flush();
+					in = new ObjectInputStream(
+							send.getInputStream());
+
+					Operation o = (Operation) in.readObject();
+					os.flush();
+					switch (o.getId()) {
+						case Operation.OP_OPEN:
+							os.writeObject(new String("Conexión establecida"));
+							Utils.showClientConnected(context, o.getMessage() 
+									+ " " + send.getInetAddress());
+							break;
+						case Operation.OP_APPLICATIONS_RUNNING:
+							ApplicationsRunning apps = getApplications();
+							os.writeObject(apps);
+							break;
+						case Operation.OP_SERVICES_RUNNING:
+							ServicesRunning services = getServicesRunning();
+							os.writeObject(services);
+							break;
+						case Operation.OP_LOCATION_GPS:
+							AndroidLocation location = getLocation();
+							os.writeObject(location);
+							break;
+						case Operation.OP_APPLICATIONS_INSTALLED:
+							ApplicationsInstalled appsInstalled = getInstalledApplications();
+							os.writeObject(appsInstalled);
+							break;
+						case Operation.OP_BATTERY_LEVEL:
+							Integer level = getBatteryStatus();
+							os.writeObject(level);
+							break;
+							
+						default:
+							break;
+					}
+					Log.i(LOGTAG, o.getMessage());
+				} catch (SocketException se) {
+					if (se.getMessage().indexOf("Interrupted system call")>=0) {
+						Log.d(LOGTAG, "Normal closing of management server");
+					} else {
+						Log.e(LOGTAG,
+								"Unexpected error on management server", se);						
+					}
+				} catch (Exception e) {
+					Log.e(LOGTAG, "Unexpected error on management server", e);
+				} finally {
+					if (os != null) {
+						os.flush();
+						os.close();						
+					}
+					if (in != null) {				
+						in.close();
+					}
+					if (send != null) {
+						send.close();						
+					}
+				}
+			}
+		} catch (SocketException e) {
+			Log.e(LOGTAG, "Detectada socket exception", e);
+		} catch (IOException e) {
+			Log.e(LOGTAG, "Detectada exception entrada salida "
+					+ e.getMessage(), e);
+		}
+	}
+	
+	public void stopListening() {
+		try {
+			keepListening = false;
+			if (listeningSocket != null) {
+				listeningSocket.close();				
+			}
+		} catch (IOException e) {
+			Log.e(LOGTAG, "Error trying to close the socket", e);
+		}
+	}
+	
+	public boolean isListeining() {
+		return keepListening;
+	}
+
+}

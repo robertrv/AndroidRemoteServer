@@ -1,33 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-	android:versionName="0.991" android:versionCode="52"
-	package="org.uoc.androidremote.server">
-	<uses-sdk android:minSdkVersion="3" />
-	<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"></uses-permission>
-	<application android:icon="@drawable/icon"
-		android:name="AppServer"
-		android:debuggable="true" android:label="Android Remote Server">
-		<activity android:name="ActivityServer" android:label="@string/app_name"
-			android:icon="@drawable/icon" android:launchMode="singleInstance">
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
+    package="org.uoc.androidremote.server"
+    android:versionCode="52"
+    android:versionName="0.991" >
 
-			</intent-filter>
-		</activity>
+    <uses-sdk android:minSdkVersion="3" />
 
-		<meta-data android:name="com.mobclix.APPLICATION_ID"
-			android:value="1F34160B-63BB-4854-BDB7-D46B7EADBF06" />
-	</application>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" >
+    </uses-permission>
 
-	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
-	<uses-permission android:name="android.permission.ACCESS_SUPERUSER"></uses-permission>
-	<uses-permission android:name="android.permission.ACCESS_WIFI_STATE"></uses-permission>
-	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
-	<uses-permission android:name="android.permission.INTERNET"></uses-permission>
-	<uses-permission android:name="android.permission.GET_TASKS"></uses-permission>
-	<uses-permission android:name="android.permission.READ_PHONE_STATE"></uses-permission>
-	<uses-permission android:name="android.permission.WAKE_LOCK"></uses-permission>
+    <application
+        android:debuggable="true"
+        android:icon="@drawable/icon"
+        android:label="Android Remote Server"
+        android:name="AppServer" >
+        <activity
+            android:icon="@drawable/icon"
+            android:label="@string/app_name"
+            android:launchMode="singleInstance"
+            android:name=".ServersControllerActivity" >
+            <intent-filter >
+                <action android:name="android.intent.action.MAIN" />
 
-</manifest> 
-  
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <meta-data
+            android:name="com.mobclix.APPLICATION_ID"
+            android:value="1F34160B-63BB-4854-BDB7-D46B7EADBF06" />
+
+        <service android:name=".ServersControllerService" >
+            <intent-filter >
+                <action android:name="org.uoc.androidremote.server.ServersControllerService" >
+                </action>
+            </intent-filter>
+        </service>
+
+        <receiver android:name=".BootReceiver" >
+            <intent-filter >
+                <action android:name="android.intent.action.BOOT_COMPLETED" >
+                </action>
+            </intent-filter>
+        </receiver>
+    </application>
+
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_SUPERUSER" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.INTERNET" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.GET_TASKS" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" >
+    </uses-permission>
+    <uses-permission android:name="android.permission.WAKE_LOCK" >
+    </uses-permission>
+
+</manifest>

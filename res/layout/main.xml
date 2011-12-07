@@ -42,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="20dp"
                 android:layout_marginTop="5dp"
-                android:background="@drawable/btnstart_normal"
+                android:background="@drawable/btnstart"
                 android:shadowColor="#111"
                 android:shadowDy="1.0"
                 android:shadowRadius="0.5"
@@ -124,7 +124,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginRight="20dp"
                 android:layout_marginTop="5dp"
-                android:background="@drawable/btnstart_normal"
+                android:background="@drawable/btnstart"
                 android:shadowColor="#111"
                 android:shadowDy="1.0"
                 android:shadowRadius="0.5"
@@ -194,12 +194,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical" >
-
-            <Button
-                android:id="@+id/refreshButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/refresh" />
         </LinearLayout>
     </TableRow>
 
