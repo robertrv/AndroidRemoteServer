@@ -155,6 +155,8 @@ public class ServersControllerActivity extends Activity {
 		}
 	};
 
+	protected Toast toast;
+
 	void doBindService() {
 		bindService(new Intent(ServersControllerActivity.this,
 				ServersControllerService.class), mConnection,
@@ -305,8 +307,12 @@ public class ServersControllerActivity extends Activity {
 	public void showTextOnScreen(final String t) {
 		runOnUiThread(new Runnable() {
 			public void run() {
-				Toast.makeText(ServersControllerActivity.this, t, Toast.LENGTH_LONG)
-						.show();
+				if (ServersControllerActivity.this.toast != null) {
+					ServersControllerActivity.this.toast.cancel();
+				}
+				ServersControllerActivity.this.toast = Toast.makeText(
+						ServersControllerActivity.this, t, Toast.LENGTH_LONG);
+				ServersControllerActivity.this.toast.show();
 			}
 		});
 	}

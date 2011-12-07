@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.os.SystemClock;
 import android.util.Log;
 
 /**
@@ -55,10 +56,10 @@ public class ServersControllerService extends Service {
 	/** Period of the Log task. */
 	private final long mPeriod = 5000;
 	private final String LOGTAG = ServersControllerService.class.getSimpleName();
-	
 	/** Timer to schedule the service. */
 	private Timer mTimer;
 	private ServersWatchDog mWathDogTask;
+	
 	private LocalSocketServer localSocketServer;
 
 	/* Service communication state attributes */
@@ -81,8 +82,11 @@ public class ServersControllerService extends Service {
 		Log.i(LOGTAG, "created");
 		mTimer = new Timer();
 		mWathDogTask = new ServersWatchDog(this);
+		mTimer.schedule(mWathDogTask, mDelay, mPeriod);
+		
 		localSocketServer = new LocalSocketServer(getApplicationContext());
 		localSocketServer.start();
+
 	}
 	
 	@Override
@@ -109,7 +113,6 @@ public class ServersControllerService extends Service {
 				initMng();
 			}
 		}
-		mTimer.schedule(mWathDogTask, mDelay, mPeriod);
 		return START_STICKY;
 	}
 	
@@ -124,21 +127,25 @@ public class ServersControllerService extends Service {
         	}
             switch (ServiceAction.fromCode(msg.what)) {
                 case START_VNC:
+                	cachedVncRunning = false;
                 	ServersControllerService.this.mWathDogTask
 						.setToRestartVnc(true);
                 	ServersControllerService.this.tryStartVnc();                	
                     break;
                 case STOP_VNC:
+                	cachedVncRunning = true;
                 	ServersControllerService.this.mWathDogTask
 						.setToRestartVnc(false);
             		ServersControllerService.this.tryStopVnc();                	
                 	break;
                 case START_MNG:
+                	cachedMngRunning = false;
                 	ServersControllerService.this.mWathDogTask
 						.setToRestartMng(true);
             		ServersControllerService.this.tryStartMng();                	
                     break;
                 case STOP_MNG:
+                	cachedMngRunning = true;
                 	ServersControllerService.this.mWathDogTask
 						.setToRestartMng(false);
             		ServersControllerService.this.tryStopMng();                	
@@ -173,6 +180,8 @@ public class ServersControllerService extends Service {
         	Log.d(LOGTAG, "trying to start mng, was not started !");
         	startMngServer();
         	resId = R.string.mngStarted;
+    	} else {
+    		Log.d(LOGTAG, "trying to start mng, but already running !");
     	}
     	sendMngReply(getString(resId));
     	Log.d(LOGTAG, "mng started command finished");		
@@ -248,6 +257,10 @@ public class ServersControllerService extends Service {
 	
 	private void startMngServer() {
 		getMngServer().start();
+		int numLoops = 0;
+		do {
+	    	SystemClock.sleep(20);
+		} while (!isMngRunning() && numLoops++<10);
 		Log.i(LOGTAG, "Management server started");
 	}
 	
@@ -260,12 +273,10 @@ public class ServersControllerService extends Service {
 	}
 	
 	private void sendServersState() {
-		boolean cmr = cachedMngRunning;
-		boolean cvr = cachedVncRunning;
+		cachedMngRunning = false;
+		cachedVncRunning = false;
 		sendMngReply(null);
 		sendVncReply(null);
-		cachedMngRunning = cmr;
-		cachedVncRunning = cvr;
 	}
 
 	private int getMngPort(){
@@ -279,6 +290,7 @@ public class ServersControllerService extends Service {
 	
 	private void sendMngReply(String message) {
 		boolean currentMngRunning = isMngRunning();
+		Log.d(LOGTAG, "cachedMngRunning("+cachedMngRunning+") != currentMngRunning ("+currentMngRunning+")");
 		if (cachedMngRunning != currentMngRunning) {
 			sendClientSrvState(currentMngRunning, ServiceReply.MNG_STARTED.what,
 					ServiceReply.MNG_STOPPED.what, getMngPort(), message);

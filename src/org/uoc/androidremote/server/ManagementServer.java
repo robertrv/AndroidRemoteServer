@@ -45,7 +45,7 @@ public class ManagementServer extends Thread {
 	private static final String LOGTAG = ManagementServer.class.getSimpleName();
 
 	private ServerSocket listeningSocket;
-	private boolean keepListening = true;
+	private boolean keepListening = false;
 	private Socket send;
 	private Context context;
 	
@@ -196,6 +196,7 @@ public class ManagementServer extends Thread {
 			Log.i(LOGTAG, "Puerto: " + PORT);
 			batteryLevel();
 			
+			keepListening = true;
 			while (keepListening) {
 				ObjectOutputStream os = null;
 				ObjectInputStream in = null;

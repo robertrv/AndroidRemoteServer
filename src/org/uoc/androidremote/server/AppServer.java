@@ -63,8 +63,6 @@ public class AppServer extends Application {
 		if (isFirstRun()) {
 			createBinary();
 		}
-		BootReceiver br = new BootReceiver();
-		br.onReceive(getApplicationContext(), null);
 	}
 
 	public boolean isFirstRun()
