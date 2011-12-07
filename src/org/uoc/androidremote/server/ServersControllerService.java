@@ -260,8 +260,12 @@ public class ServersControllerService extends Service {
 	}
 	
 	private void sendServersState() {
+		boolean cmr = cachedMngRunning;
+		boolean cvr = cachedVncRunning;
 		sendMngReply(null);
 		sendVncReply(null);
+		cachedMngRunning = cmr;
+		cachedVncRunning = cvr;
 	}
 
 	private int getMngPort(){
@@ -275,19 +279,19 @@ public class ServersControllerService extends Service {
 	
 	private void sendMngReply(String message) {
 		boolean currentMngRunning = isMngRunning();
-//		if (cachedMngRunning != currentMngRunning) {
+		if (cachedMngRunning != currentMngRunning) {
 			sendClientSrvState(currentMngRunning, ServiceReply.MNG_STARTED.what,
 					ServiceReply.MNG_STOPPED.what, getMngPort(), message);
-//		}
+		}
 		cachedMngRunning = currentMngRunning;
 	}
 
 	private void sendVncReply(String message) {
 		boolean currentVncRunning = isVncRunning();
-//		if (cachedVncRunning != currentVncRunning) {
+		if (cachedVncRunning != currentVncRunning) {
 			sendClientSrvState(currentVncRunning, ServiceReply.VNC_STARTED.what,
 					ServiceReply.VNC_STOPPED.what, getVncPort(), message);
-//		}
+		}
 		cachedVncRunning = currentVncRunning;
 	}
 

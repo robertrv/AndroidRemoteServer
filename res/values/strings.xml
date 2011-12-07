@@ -52,5 +52,10 @@
 	<string name="stopText">Stop</string>    
 	<string name="vncServerStillRunning">VNC server is still running</string>
 	<string name="managementServerStillRunning">Management server still running, try to close it before start again</string>
-	<string name="refresh">Status refresh</string>    
+	<string name="vncNotRunning">VNC server is not running</string>
+	<string name="managementNotRunning">Management server is not running</string>
+	<string name="vncStarted">Vnc server Started</string>
+	<string name="vncStopped">Vnc server Stopped</string>
+	<string name="mngStarted">Management server Started</string>
+	<string name="mngStopped">Management server Stopped</string>
 </resources>
