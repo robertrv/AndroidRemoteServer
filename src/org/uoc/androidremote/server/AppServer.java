@@ -51,6 +51,8 @@ import android.util.Log;
  */
 public class AppServer extends Application {
 
+	private static final String LOGTAG = "VNC";
+
 	/* (non-Javadoc)
 	 * @see android.app.Application#onCreate()
 	 */
@@ -73,17 +75,17 @@ public class AppServer extends Application {
 			.getPackageInfo(getPackageName(), PackageManager.GET_META_DATA)
 			.versionCode;
 		} catch (NameNotFoundException e) {
-			Log.e("VNC", "Package not found... Odd, since we're in that package...", e);
+			Log.e(LOGTAG, "Package not found... Odd, since we're in that package...", e);
 		}
 
 		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
 		int lastFirstRun = prefs.getInt("last_run", 0);
 
 		if (lastFirstRun >= versionCode) {
-			Log.d("VNC", "Not first run");
+			Log.d(LOGTAG, "Not first run");
 			return false;
 		}
-		Log.d("VNC", "First run for version " + versionCode);
+		Log.d(LOGTAG, "First run for version " + versionCode);
 
 		SharedPreferences.Editor editor = prefs.edit();
 		editor.putInt("last_run", versionCode);
@@ -91,11 +93,8 @@ public class AppServer extends Application {
 		return true;
 	}
 
-	/**
-	 * Creates the binary.
-	 */
 	public void createBinary()  
-	{ 
+	{
 		copyBinary(R.raw.androidvncserver, getFilesDir().getAbsolutePath() + "/androidvncserver");
 		copyBinary(R.raw.vncviewer, getFilesDir().getAbsolutePath()+"/VncViewer.jar");
 		copyBinary(R.raw.indexvnc, getFilesDir().getAbsolutePath()+"/index.vnc");
@@ -112,22 +111,12 @@ public class AppServer extends Application {
 			writeCommand(os, "chmod 777 " + getFilesDir().getAbsolutePath() + "/androidvncserver");
 			os.close();
 		} catch (IOException e) {
-			Log.v("VNC",e.getMessage());		
+			Log.v(LOGTAG,e.getMessage());		
 		}catch (Exception e) {
-			Log.v("VNC",e.getMessage());		
+			Log.v(LOGTAG,e.getMessage());		
 		}
 	}
 
-
-
-	/**
-	 * Copy binary.
-	 * 
-	 * @param id
-	 *            the id
-	 * @param path
-	 *            the path
-	 */
 	public void copyBinary(int id,String path)
 	{
 		try {
@@ -145,22 +134,12 @@ public class AppServer extends Application {
 		}
 		catch (Exception e)
 		{
-			Log.v("VNC","public void createBinary(): " + e.getMessage());
+			Log.v(LOGTAG,"public void createBinary(): " + e.getMessage());
 		}
 
 
 	}  
 
-	/**
-	 * Write command.
-	 * 
-	 * @param os
-	 *            the os
-	 * @param command
-	 *            the command
-	 * @throws Exception
-	 *             the exception
-	 */
 	static void writeCommand(OutputStream os, String command) throws Exception
 	{
 		os.write((command + "\n").getBytes("ASCII"));
