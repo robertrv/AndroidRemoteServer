@@ -1,6 +1,7 @@
 package org.uoc.androidremote.server;
 
 import java.io.File;
+import java.io.OutputStream;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningServiceInfo;
@@ -102,6 +103,10 @@ public class Utils {
 	public static boolean hasBusybox() {
 		File busyboxFile = Utils.findExecutableOnPath("busybox");
 		return busyboxFile != null;
+	}
+
+	public static void writeCommand(OutputStream os, String command) throws Exception {
+		os.write((command + "\n").getBytes("ASCII"));
 	}
 
 }

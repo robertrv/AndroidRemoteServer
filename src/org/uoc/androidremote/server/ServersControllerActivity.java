@@ -73,8 +73,9 @@ import android.widget.Toast;
  */
 public class ServersControllerActivity extends Activity {
 	
-	/** The Constant MENU_QUIT. */
-	private static final int MENU_QUIT = 0;
+	/** MENU's constants. */
+	private static final int QUIT = 0;
+	private static final int FINISH = 1;
 	
 	private static final String LOGTAG = ServersControllerActivity.class
 			.getSimpleName();
@@ -177,6 +178,7 @@ public class ServersControllerActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		Log.v(LOGTAG, "Executing the onDestroy, going to unbind from service");
 		doUnbindService();
 	}
 	
@@ -192,7 +194,7 @@ public class ServersControllerActivity extends Activity {
 
 		setContentView(R.layout.main);
 
-		comprobarBusybox();
+		checkBusybox();
 
 		if (!hasRootPermission()) {
 			startDialog.dismiss();
@@ -254,6 +256,10 @@ public class ServersControllerActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		// Start service, even probably is started, needed to avoid closing 
+		// himself.
+		Utils.tryStartService(getApplicationContext(), LOGTAG,
+				ServersControllerService.class.getCanonicalName());
 		// Ask the service about information about servers !
 		doBindService();
 	}
@@ -270,7 +276,7 @@ public class ServersControllerActivity extends Activity {
 		}
 	}
 
-	public boolean comprobarBusybox() {
+	public boolean checkBusybox() {
 		boolean has = Utils.hasBusybox();
 		startDialog = new AlertDialog.Builder(this).create();
 		if (!has) {
@@ -321,7 +327,8 @@ public class ServersControllerActivity extends Activity {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.menu, menu);
 
-		menu.add(0, MENU_QUIT, 0, "Close");
+		menu.add(0, QUIT, 0, "Close activity");
+		menu.add(0, FINISH, 1, "Stop all");
 
 		return true;
 	}
@@ -404,10 +411,14 @@ public class ServersControllerActivity extends Activity {
 
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case MENU_QUIT:
-				// should stop the rest of processes
-				// TODO R: is this true ? Should we just stop all the processes? has it sense ?
-				System.exit(1);
+			case QUIT:
+				// Just stop this application
+				finish();
+				break;
+			case FINISH:
+				stopService(new Intent(
+					ServersControllerService.class.getCanonicalName()));
+				finish();
 				break;
 		}
 		return true;

@@ -29,11 +29,11 @@ public class VncServerWrapper {
 			OutputStream os = sh.getOutputStream();
 
 			if (Utils.hasBusybox()) {
-				writeCommand(os, "busybox killall androidvncserver");
-				writeCommand(os, "busybox killall -KILL androidvncserver");
+				Utils.writeCommand(os, "busybox killall androidvncserver");
+				Utils.writeCommand(os, "busybox killall -KILL androidvncserver");
 			} else {
-				writeCommand(os, "killall androidvncserver");
-				writeCommand(os, "killall -KILL androidvncserver");
+				Utils.writeCommand(os, "killall androidvncserver");
+				Utils.writeCommand(os, "killall -KILL androidvncserver");
 				if (Utils.findExecutableOnPath("killall") == null) {
 					String msg = "I couldn't find the killall executable, " +
 							"please install busybox or i can't stop server";
@@ -42,7 +42,7 @@ public class VncServerWrapper {
 				}
 			}
 
-			writeCommand(os, "exit");
+			Utils.writeCommand(os, "exit");
 
 			os.flush();
 			os.close();
@@ -55,7 +55,7 @@ public class VncServerWrapper {
 			do {
 	        	SystemClock.sleep(100);
 			}
-			while (isVncServerRunning() && numLoops++ < 10);
+			while (isRunning() && numLoops++ < 10);
 
 		} catch (Exception e) {
 			String msg = "stopServer():" + e.getMessage();
@@ -107,9 +107,9 @@ public class VncServerWrapper {
 			sh = Runtime.getRuntime().exec("su");
 			OutputStream os = sh.getOutputStream();
 
-			writeCommand(os, "chmod 777 " + context.getFilesDir().getAbsolutePath()
+			Utils.writeCommand(os, "chmod 777 " + context.getFilesDir().getAbsolutePath()
 					+ "/androidvncserver");
-			writeCommand(os, context.getFilesDir().getAbsolutePath()
+			Utils.writeCommand(os, context.getFilesDir().getAbsolutePath()
 					+ "/androidvncserver " + password_check + " " + rotation
 					+ " " + scaling_string + " " + port_string + " " + testmode);
 
@@ -121,7 +121,7 @@ public class VncServerWrapper {
 			do {
 	        	SystemClock.sleep(100);
 			}
-			while (!isVncServerRunning() && numLoops++ < 10);
+			while (!isRunning() && numLoops++ < 10);
 			
 		} catch (Exception e) {
 			String msg = "startServer():" + e.getMessage();
@@ -130,7 +130,7 @@ public class VncServerWrapper {
 		}
 	}
 
-	public static boolean isVncServerRunning() {
+	public static boolean isRunning() {
 		String result = "";
 		Process sh;
 		try {
@@ -147,7 +147,7 @@ public class VncServerWrapper {
 
 			InputStream is = sh.getInputStream();
 			InputStreamReader isr = new InputStreamReader(is);
-			BufferedReader br = new BufferedReader(isr);
+			BufferedReader br = new BufferedReader(isr, 160);
 			String line;
 
 			while ((line = br.readLine()) != null) {
@@ -157,19 +157,14 @@ public class VncServerWrapper {
 					return true;
 				}
 			}
-
 		} catch (Exception e) {
-			Log.v(LOGTAG, " isAndroidServerRunning():" + e.getMessage(), e);
+			Log.e(LOGTAG, " isAndroidServerRunning():" + e.getMessage(), e);
 		}
 
 		Log.v(LOGTAG, "isAndroidServerRunning? no");
 		return false;
 	}
 	
-	static void writeCommand(OutputStream os, String command) throws Exception {
-		os.write((command + "\n").getBytes("ASCII"));
-	}
-
 	public int getListeningPort() {
 		return listeningPort;
 	}

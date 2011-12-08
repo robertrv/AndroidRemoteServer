@@ -52,7 +52,7 @@ public class ServersControllerService extends Service {
 
 	/* Dog watch attributes*/
 	/** Delay until first execution of the Watch Dog.*/
-	private final long mDelay = 30000;
+	private final long mDelay = 10000;
 	/** Period of the Log task. */
 	private final long mPeriod = 5000;
 	private final String LOGTAG = ServersControllerService.class.getSimpleName();
@@ -75,7 +75,6 @@ public class ServersControllerService extends Service {
 	private ManagementServer mngServer;
 	private VncServerWrapper vncWrapper;
 	
-	
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -92,11 +91,25 @@ public class ServersControllerService extends Service {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		// Try to stop watch dog and stop servers
-		tryStopMng();
-		tryStopVnc();
 		mWathDogTask.cancel();
 		mTimer.cancel();
+		Log.v(LOGTAG, "Finished stopping watchdog. ScheduledExectionTime? "
+				+ mWathDogTask.scheduledExecutionTime());
+
+		Log.v(LOGTAG, "Executing the onDestroy, going to free all stuff");
+		// Try to stop watch dog and stop servers
+		stopVncServer();
+		Log.v(LOGTAG, "Stopping vnc finished, is running ? "+ isVncRunning());
+		stopMngServer();
+		Log.v(LOGTAG, "Stopping mng finished, is running ? "+ isMngRunning());
+		localSocketServer.stopListening();
+		Log.v(LOGTAG,
+				"Stopped local server. Listening ? "
+						+ localSocketServer.isListening());
+		
+		this.stopSelf();
+		System.runFinalizersOnExit(true);
+		System.exit(0);
 	}
 	
 	@Override
@@ -244,7 +257,7 @@ public class ServersControllerService extends Service {
 	}
 	
 	boolean isVncRunning() {
-		boolean result = VncServerWrapper.isVncServerRunning();
+		boolean result = VncServerWrapper.isRunning();
 		Log.d(LOGTAG, "Is vnc running? "+result);
 		return result;
 	}
@@ -290,7 +303,6 @@ public class ServersControllerService extends Service {
 	
 	private void sendMngReply(String message) {
 		boolean currentMngRunning = isMngRunning();
-		Log.d(LOGTAG, "cachedMngRunning("+cachedMngRunning+") != currentMngRunning ("+currentMngRunning+")");
 		if (cachedMngRunning != currentMngRunning) {
 			sendClientSrvState(currentMngRunning, ServiceReply.MNG_STARTED.what,
 					ServiceReply.MNG_STOPPED.what, getMngPort(), message);

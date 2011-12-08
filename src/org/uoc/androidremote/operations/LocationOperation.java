@@ -18,21 +18,25 @@ package org.uoc.androidremote.operations;
 
 import java.io.Serializable;
 
-/**
- * The Class AndroidLocation.
- */
-public class AndroidLocation implements Serializable {
+public class LocationOperation implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
 
 	private double latitude;
 
 	private double longitude;
+	
+	private String message;
 
-	public AndroidLocation(double latitude, double longitude) {
+	public LocationOperation(double latitude, double longitude) {
 		super();
 		this.latitude = latitude;
 		this.longitude = longitude;
+	}
+	
+	public LocationOperation(String message) {
+		super();
+		this.message = message;
 	}
 
 	public double getLatitude() {
@@ -49,5 +53,13 @@ public class AndroidLocation implements Serializable {
 
 	public void setLongitude(double longitude) {
 		this.longitude = longitude;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
 	}
 }

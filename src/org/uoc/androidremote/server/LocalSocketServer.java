@@ -7,6 +7,7 @@ import java.net.SocketException;
 import android.content.Context;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
+import android.os.SystemClock;
 import android.text.ClipboardManager;
 import android.util.Log;
 
@@ -21,11 +22,12 @@ public class LocalSocketServer extends Thread {
 
 	public static final String LOGTAG = LocalSocketServer.class.getSimpleName();
 	public static final String SOCKET_ADDRESS = 
-			"/data/data/org.uoc.androidremote.server.localsocket";
+			"org.uoc.androidremote.server.localsocket";
 	
 	private Context context;
 	private LocalServerSocket server;
-	private boolean listen;
+	private boolean keepListening;
+	private boolean listening;
 
 	public LocalSocketServer(Context context) {
 		this.context = context;
@@ -42,9 +44,14 @@ public class LocalSocketServer extends Thread {
 		InputStream input = null;
 		LocalSocket receiver = null; 
 		try {
-			listen = true;
-			while (listen) {
-				try {				
+			keepListening = true;
+			listening = true;
+			while (keepListening) {
+				try {
+					if (server == null) {
+						SystemClock.sleep(1000);
+						continue;
+					}
 					receiver = server.accept();
 				} catch (IOException e) {
 					Log.d(LOGTAG, "Error while accepting new connections", e);
@@ -61,6 +68,8 @@ public class LocalSocketServer extends Thread {
 						readed = input.read();
 					}
 					
+					Log.v(LOGTAG, "Readed from local socket Readed: " + readed
+							+ " bytes: " + bytes);
 					Log.v(LOGTAG, bytes.substring(0, 6));
 
 					if (bytes.substring(0, 6).equals("~CLIP|")) {
@@ -68,7 +77,8 @@ public class LocalSocketServer extends Thread {
 						ClipboardManager clipboard = (ClipboardManager) context
 								.getSystemService(Context.CLIPBOARD_SERVICE);
 
-						clipboard.setText(bytes.toString());
+						String text = bytes.toString();
+						clipboard.setText(text);
 					} else {
 						if (bytes.substring(0, 11).equals("~CONNECTED|")) {
 							bytes.delete(0, 11);
@@ -87,7 +97,7 @@ public class LocalSocketServer extends Thread {
 			Log.e(LOGTAG, "IO Exception while reading from local server " +
 					"socket", e);
 		} finally {
-			listen = false;
+			listening = false;
 			if (input != null) {
 				try {
 					input.close();
@@ -114,17 +124,24 @@ public class LocalSocketServer extends Thread {
 
 	void stopListening() {
 		try {
-			listen = false;
+			Log.v(LOGTAG, "Starting to stop local socket server");
+			keepListening = false;
 			if (server != null) {
+				Log.v(LOGTAG, "going to close local socket server!");
 				server.close();
-				interrupt();
+				int loops = 0;
+				do {
+					SystemClock.sleep(200);
+				} while (listening && loops++ < 10);
 			}
+			interrupt();
+			Log.v(LOGTAG, "Finished stopping local socket server");
 		} catch (IOException e) {
 			Log.e(LOGTAG, "Error stopping server", e);
 		}
 	}
 	
 	public boolean isListening() {
-		return listen;
+		return keepListening;
 	}
 }

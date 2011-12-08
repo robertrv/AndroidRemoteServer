@@ -32,7 +32,6 @@ public class ServersWatchDog extends TimerTask {
 	private final String LOGTAG = ServersWatchDog.class.getSimpleName();
 
 	public void run() {
-		logServerStates("Starting to watch server at ");
 		normalizeServersStates();
 		logServerStates("Finished watching servers at ");
 	}
