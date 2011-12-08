@@ -3,6 +3,7 @@ package org.uoc.androidremote.server;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -10,12 +11,13 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.uoc.androidremote.operations.AndroidApplication;
-import org.uoc.androidremote.operations.AndroidLocation;
+import org.uoc.androidremote.operations.LocationOperation;
 import org.uoc.androidremote.operations.AndroidRunningApplication;
 import org.uoc.androidremote.operations.AndroidService;
 import org.uoc.androidremote.operations.ApplicationsInstalled;
 import org.uoc.androidremote.operations.ApplicationsRunning;
 import org.uoc.androidremote.operations.Operation;
+import org.uoc.androidremote.operations.Reboot;
 import org.uoc.androidremote.operations.ServicesRunning;
 
 import android.app.ActivityManager;
@@ -58,6 +60,92 @@ public class ManagementServer extends Thread {
 
 	public int getListeningPort() {
 		return PORT;
+	}
+	
+	public void run() {
+		try {
+			listeningSocket = new ServerSocket(PORT);
+			Log.i(LOGTAG, "Puerto: " + PORT);
+			batteryLevel();
+			
+			keepListening = true;
+			while (keepListening) {
+				ObjectOutputStream os = null;
+				ObjectInputStream in = null;
+				try {
+					// listen for incoming clients
+					send = listeningSocket.accept();
+					os = new ObjectOutputStream(
+							send.getOutputStream());
+					os.flush();
+					in = new ObjectInputStream(
+							send.getInputStream());
+
+					Operation o = (Operation) in.readObject();
+					os.flush();
+					switch (o.getId()) {
+						case Operation.OP_OPEN:
+							os.writeObject(new String("Conexión establecida"));
+							Utils.showClientConnected(context, o.getMessage() 
+									+ " " + send.getInetAddress());
+							break;
+						case Operation.OP_APPLICATIONS_RUNNING:
+							ApplicationsRunning apps = getApplications();
+							os.writeObject(apps);
+							break;
+						case Operation.OP_SERVICES_RUNNING:
+							ServicesRunning services = getServicesRunning();
+							os.writeObject(services);
+							break;
+						case Operation.OP_LOCATION_GPS:
+							LocationOperation location = getLocation();
+							os.writeObject(location);
+							break;
+						case Operation.OP_APPLICATIONS_INSTALLED:
+							ApplicationsInstalled appsInstalled = getInstalledApplications();
+							os.writeObject(appsInstalled);
+							break;
+						case Operation.OP_BATTERY_LEVEL:
+							Integer level = getBatteryStatus();
+							os.writeObject(level);
+							break;
+						case Operation.OP_REBOOT:
+							Reboot reboot = getRebootResult();
+							os.writeObject(reboot);
+							break;
+							
+						default:
+							break;
+					}
+					Log.i(LOGTAG, o.getMessage());
+				} catch (SocketException se) {
+					if (se.getMessage().indexOf("Interrupted system call")>=0 || se.getMessage().indexOf("Socket closed")>=0) {
+						Log.d(LOGTAG, "Normal closing of management server");
+					} else {
+						Log.e(LOGTAG,
+								"Unexpected socket exception on management server", se);						
+					}
+				} catch (Exception e) {
+					Log.e(LOGTAG, "Unexpected error on management server", e);
+				} finally {
+					if (os != null) {
+						os.flush();
+						os.close();						
+					}
+					if (in != null) {				
+						in.close();
+					}
+					if (send != null) {
+						send.close();						
+					}
+				}
+			}
+		} catch (SocketException e) {
+			Log.e(LOGTAG, "Detectada socket exception", e);
+		} catch (IOException e) {
+			Log.e(LOGTAG, "Detectada exception entrada salida "
+					+ e.getMessage(), e);
+		}
 	}
 
 	/**
@@ -176,102 +264,52 @@ public class ManagementServer extends Thread {
 	 * 
 	 * @return the location
 	 */
-	private AndroidLocation getLocation() {
+	private LocationOperation getLocation() {
 		LocationManager mlocManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 		Criteria crit = new Criteria();
 		crit.setAccuracy(Criteria.ACCURACY_FINE);
 		String provider = mlocManager.getBestProvider(crit, true);
 		Location loc = mlocManager.getLastKnownLocation(provider);
-		AndroidLocation location = new AndroidLocation(loc.getLatitude(),
-				loc.getAltitude());
-		return location;
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Runnable#run()
-	 */
-	public void run() {
-		try {
-			listeningSocket = new ServerSocket(PORT);
-			Log.i(LOGTAG, "Puerto: " + PORT);
-			batteryLevel();
-			
-			keepListening = true;
-			while (keepListening) {
-				ObjectOutputStream os = null;
-				ObjectInputStream in = null;
-				try {
-					// listen for incoming clients
-					send = listeningSocket.accept();
-					os = new ObjectOutputStream(
-							send.getOutputStream());
-					os.flush();
-					in = new ObjectInputStream(
-							send.getInputStream());
-
-					Operation o = (Operation) in.readObject();
-					os.flush();
-					switch (o.getId()) {
-						case Operation.OP_OPEN:
-							os.writeObject(new String("Conexión establecida"));
-							Utils.showClientConnected(context, o.getMessage() 
-									+ " " + send.getInetAddress());
-							break;
-						case Operation.OP_APPLICATIONS_RUNNING:
-							ApplicationsRunning apps = getApplications();
-							os.writeObject(apps);
-							break;
-						case Operation.OP_SERVICES_RUNNING:
-							ServicesRunning services = getServicesRunning();
-							os.writeObject(services);
-							break;
-						case Operation.OP_LOCATION_GPS:
-							AndroidLocation location = getLocation();
-							os.writeObject(location);
-							break;
-						case Operation.OP_APPLICATIONS_INSTALLED:
-							ApplicationsInstalled appsInstalled = getInstalledApplications();
-							os.writeObject(appsInstalled);
-							break;
-						case Operation.OP_BATTERY_LEVEL:
-							Integer level = getBatteryStatus();
-							os.writeObject(level);
-							break;
-							
-						default:
-							break;
-					}
-					Log.i(LOGTAG, o.getMessage());
-				} catch (SocketException se) {
-					if (se.getMessage().indexOf("Interrupted system call")>=0) {
-						Log.d(LOGTAG, "Normal closing of management server");
-					} else {
-						Log.e(LOGTAG,
-								"Unexpected error on management server", se);						
-					}
-				} catch (Exception e) {
-					Log.e(LOGTAG, "Unexpected error on management server", e);
-				} finally {
-					if (os != null) {
-						os.flush();
-						os.close();						
-					}
-					if (in != null) {				
-						in.close();
-					}
-					if (send != null) {
-						send.close();						
-					}
+		if (loc == null) {
+			// Means GPS is inactive, try with other providers
+			for (String currentProvider : mlocManager.getProviders(true)) {
+				loc = mlocManager.getLastKnownLocation(currentProvider);
+				if (loc != null) {
+					break;
 				}
 			}
-		} catch (SocketException e) {
-			Log.e(LOGTAG, "Detectada socket exception", e);
-		} catch (IOException e) {
-			Log.e(LOGTAG, "Detectada exception entrada salida "
-					+ e.getMessage(), e);
+		}
+		if (loc != null) {
+			return new LocationOperation(loc.getLatitude(),
+					loc.getAltitude());
+		} else {
+			return new LocationOperation(
+					"Error trying to get location, no position available " +
+					"right now.");
 		}
 	}
 	
+	private Reboot getRebootResult() {
+		Reboot result = new Reboot();
+		try {
+		    Process sh = Runtime.getRuntime().exec("su");
+			OutputStream os = sh.getOutputStream();
+
+			/* TODO R: Think about options to reboot
+			 *  - Stop all the processes
+			 *  - Prepare processes to be started after reboot ? Maybe an start process which call wait-for-devices ?
+			 */
+		    Utils.writeCommand(os, "reboot -n");
+		    
+		    result.setResult(true);
+		} catch (Exception e) {
+			result.setResult(false);
+			result.setProblemMessage(e.getMessage());
+			Log.e(LOGTAG, "Error trying to reboot device", e);
+		}
+		return result;
+	}
+
 	public void stopListening() {
 		try {
 			keepListening = false;

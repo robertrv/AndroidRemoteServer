@@ -1,0 +1,11 @@
+Relase Notes
+============
+1.0 
+---
+First release of the software comming from http://code.google.com/p/androidremote-server/
+2.0 
+---
+ * Refactoring of servers to be used in service mode.
+ * Added watchdog to take care of the servers (every 5 seconds once is initiated)
+ * BootReceiver to restart service once device is booted.
+ * Added Reboot operation, just reboots the device via "reboot" command directly.
