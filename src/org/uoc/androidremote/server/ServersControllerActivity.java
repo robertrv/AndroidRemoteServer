@@ -66,23 +66,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 /**
- * Main android activity responsible for gui management, will delegate starting 
+ * Main android activity responsible for gui management, will delegate starting
  * and stopping servers to another service
  * 
  * @author robertrv [at] gmail
  */
 public class ServersControllerActivity extends Activity {
-	
+
 	/** MENU's constants. */
 	private static final int QUIT = 0;
 	private static final int FINISH = 1;
-	
+
 	private static final String LOGTAG = ServersControllerActivity.class
 			.getSimpleName();
-	
+
 	/** The Constant APP_ID. */
 	static final int APP_ID = 1206;
-	
+
 	/** The start dialog. */
 	AlertDialog startDialog;
 
@@ -90,48 +90,48 @@ public class ServersControllerActivity extends Activity {
 	private int vncPort = 5901;
 	private boolean mngRunning = false;
 	private int mngPort = ManagementServer.PORT;
-	
+
 	/** Messenger for communicating with service. */
-    Messenger serviceMessenger = null;
-    /** Flag indicating whether we have called bind on the service. */
-    boolean serviceBound;
+	Messenger serviceMessenger = null;
+	/** Flag indicating whether we have called bind on the service. */
+	boolean serviceBound;
 
-    /**
-     * Handler of incoming messages from service.
-     */
-    class IncomingHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (Constants.ServiceReply.fromCode(msg.what)) {
-                case VNC_STARTED:
-                	vncRunning = true;
-                	vncPort = msg.arg1;
-                    break;
-                case VNC_STOPPED:
-                	vncRunning = false;
-                    break;                	
-                case MNG_STARTED:
-                	mngRunning = true;
-                	mngPort = msg.arg1;
-                	break;
-                case MNG_STOPPED:
-                	mngRunning = false;
-                	break;
-                default:
-                    super.handleMessage(msg);
-            }
-            if (msg.obj != null) {
-            	showTextOnScreen(msg.obj.toString());
-            }
-        	setStateLabels();
-        }
-    }
+	/**
+	 * Handler of incoming messages from service.
+	 */
+	class IncomingHandler extends Handler {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (Constants.ServiceReply.fromCode(msg.what)) {
+			case VNC_STARTED:
+				vncRunning = true;
+				vncPort = msg.arg1;
+				break;
+			case VNC_STOPPED:
+				vncRunning = false;
+				break;
+			case MNG_STARTED:
+				mngRunning = true;
+				mngPort = msg.arg1;
+				break;
+			case MNG_STOPPED:
+				mngRunning = false;
+				break;
+			default:
+				super.handleMessage(msg);
+			}
+			if (msg.obj != null) {
+				showTextOnScreen(msg.obj.toString());
+			}
+			setStateLabels();
+		}
+	}
 
-    /**
-     * Target we publish for clients to send messages to IncomingHandler.
-     */
-    final Messenger mMessenger = new Messenger(new IncomingHandler());
-    
+	/**
+	 * Target we publish for clients to send messages to IncomingHandler.
+	 */
+	final Messenger mMessenger = new Messenger(new IncomingHandler());
+
 	/**
 	 * Class for interacting with the main interface of the service.
 	 */
@@ -174,14 +174,14 @@ public class ServersControllerActivity extends Activity {
 			Log.d(this.getClass().getSimpleName(), "Unbinding.");
 		}
 	}
-	
+
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		Log.v(LOGTAG, "Executing the onDestroy, going to unbind from service");
 		doUnbindService();
 	}
-	
+
 	/**
 	 * Called when the activity is first created.
 	 * 
@@ -252,18 +252,18 @@ public class ServersControllerActivity extends Activity {
 					}
 				});
 	}
-	
+
 	@Override
 	protected void onResume() {
 		super.onResume();
-		// Start service, even probably is started, needed to avoid closing 
+		// Start service, even probably is started, needed to avoid closing
 		// himself.
 		Utils.tryStartService(getApplicationContext(), LOGTAG,
 				ServersControllerService.class.getCanonicalName());
 		// Ask the service about information about servers !
 		doBindService();
 	}
-	
+
 	private void sendMessageToService(ServiceAction action) {
 		try {
 			Message msg = Message.obtain(null, action.what);
@@ -332,7 +332,7 @@ public class ServersControllerActivity extends Activity {
 
 		return true;
 	}
-	
+
 	/**
 	 * Set the state labels depending on current status of sockets and internal
 	 * server information.
@@ -340,7 +340,6 @@ public class ServersControllerActivity extends Activity {
 	public void setStateLabels() {
 		setStateLabels(vncRunning, mngRunning);
 	}
-	
 
 	/**
 	 * Sets the state labels.
@@ -360,22 +359,23 @@ public class ServersControllerActivity extends Activity {
 		btnStart.setEnabled(!runningVnc);
 		btnStop.setEnabled(runningVnc);
 		TextView t = (TextView) findViewById(R.id.TextView01);
-		
+
 		String host = "localhost";
 		String ip = getIpAddress();
 		if (ip != null) {
 			host = ip;
 		}
-		
+
 		if (runningVnc) {
-			t.setText("http://"+host+":"+vncPort);
+			t.setText("http://" + host + ":" + vncPort);
 		} else {
-			t.setText("");			
+			t.setText("");
 		}
 
 		TextView stateGestionLabel = (TextView) findViewById(R.id.stateGestionLabel);
 		stateGestionLabel.setText(runningManagement ? "Running" : "Stopped");
-		stateGestionLabel.setTextColor(runningManagement ? Color.GREEN : Color.RED);
+		stateGestionLabel.setTextColor(runningManagement ? Color.GREEN
+				: Color.RED);
 
 		Button btnStartGestion = (Button) findViewById(R.id.ButtonGestionStart);
 		Button btnStopGestion = (Button) findViewById(R.id.ButtonGestionStop);
@@ -386,7 +386,7 @@ public class ServersControllerActivity extends Activity {
 		if (runningManagement) {
 			tGestion1.setText("IP: " + host + " Puerto: " + mngPort);
 		} else {
-			tGestion1.setText("");			
+			tGestion1.setText("");
 		}
 	}
 
@@ -411,19 +411,18 @@ public class ServersControllerActivity extends Activity {
 
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-			case QUIT:
-				// Just stop this application
-				finish();
-				break;
-			case FINISH:
-				stopService(new Intent(
+		case QUIT:
+			// Just stop this application
+			finish();
+			break;
+		case FINISH:
+			stopService(new Intent(
 					ServersControllerService.class.getCanonicalName()));
-				finish();
-				break;
+			finish();
+			break;
 		}
 		return true;
-	}	
-
+	}
 
 	private boolean hasRootPermission() {
 		boolean rooted = true;
