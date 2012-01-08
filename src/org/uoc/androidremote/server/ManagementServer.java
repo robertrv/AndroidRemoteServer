@@ -113,7 +113,10 @@ public class ManagementServer extends Thread {
 							Reboot reboot = getRebootResult();
 							os.writeObject(reboot);
 							break;
-							
+						case Operation.OP_CLOSE:
+							os.writeObject(new String("Conexión cerrada"));
+							Utils.showClientDisconnected(context);
+							break;
 						default:
 							break;
 					}
