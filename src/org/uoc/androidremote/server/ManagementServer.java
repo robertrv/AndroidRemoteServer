@@ -52,20 +52,27 @@ public class ManagementServer extends Thread {
 	private Context context;
 	
 	private Integer batteryLevel = Integer.valueOf(0);
-	static final int PORT = 5000;
+	static final int DEFAULT_PORT = 5000;
+	private int listeningPort = DEFAULT_PORT;
 	
 	public ManagementServer(Context context) {
 		this.context = context;
 	}
 
 	public int getListeningPort() {
-		return PORT;
+		return listeningPort;
 	}
+	
+	public void setListeningPort(int port) {
+		listeningPort = port;
+	}
+
+
 	
 	public void run() {
 		try {
-			listeningSocket = new ServerSocket(PORT);
-			Log.i(LOGTAG, "Puerto: " + PORT);
+			listeningSocket = new ServerSocket(listeningPort);
+			Log.i(LOGTAG, "Puerto: " + listeningPort);
 			batteryLevel();
 			
 			keepListening = true;

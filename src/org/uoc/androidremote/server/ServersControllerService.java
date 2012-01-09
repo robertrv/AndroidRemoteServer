@@ -141,26 +141,41 @@ public class ServersControllerService extends Service {
             switch (ServiceAction.fromCode(msg.what)) {
                 case START_VNC:
                 	cachedVncRunning = false;
+					int vncPort = getIntOrDefault(msg,
+							VncServerWrapper.DEFAULT_PORT,
+							ServersControllerActivity.PORT_BUNDLE_KEY);
+					int scaleFactor = getIntOrDefault(msg,
+							VncServerWrapper.DEFAULT_SCALE_FACTOR,
+							ServersControllerActivity.SCALE_FACTOR_BUNDLE_KEY);
+
                 	ServersControllerService.this.mWathDogTask
-						.setToRestartVnc(true);
-                	ServersControllerService.this.tryStartVnc();                	
+						.setToRestartVnc(true, vncPort, scaleFactor);
+                	
+                	ServersControllerService.this.tryStartVnc(vncPort, 
+                			scaleFactor);
                     break;
                 case STOP_VNC:
                 	cachedVncRunning = true;
-                	ServersControllerService.this.mWathDogTask
-						.setToRestartVnc(false);
+					ServersControllerService.this.mWathDogTask.setToRestartVnc(
+							false, VncServerWrapper.DEFAULT_PORT,
+							VncServerWrapper.DEFAULT_SCALE_FACTOR);
             		ServersControllerService.this.tryStopVnc();                	
                 	break;
                 case START_MNG:
                 	cachedMngRunning = false;
+					int mngPort = getIntOrDefault(msg,
+							ManagementServer.DEFAULT_PORT,
+							ServersControllerActivity.PORT_BUNDLE_KEY);
+
                 	ServersControllerService.this.mWathDogTask
-						.setToRestartMng(true);
-            		ServersControllerService.this.tryStartMng();                	
+						.setToRestartMng(true, mngPort);
+
+                	ServersControllerService.this.tryStartMng(mngPort);                	
                     break;
                 case STOP_MNG:
                 	cachedMngRunning = true;
                 	ServersControllerService.this.mWathDogTask
-						.setToRestartMng(false);
+						.setToRestartMng(false, ManagementServer.DEFAULT_PORT);
             		ServersControllerService.this.tryStopMng();                	
                 	break;
                 case GET_ALL_SERVER_STATUS:
@@ -172,6 +187,15 @@ public class ServersControllerService extends Service {
         }
     }
     
+    private int getIntOrDefault(Message msg, int defaultValue, String key) {
+    	int port = defaultValue;
+		if (msg.getData() != null
+				&& msg.getData().getInt(key) > 0) {
+			port = msg.getData().getInt(key);
+		}
+		return port;
+
+    }
 	
 	@Override
 	public IBinder onBind(final Intent intent) {
@@ -187,11 +211,11 @@ public class ServersControllerService extends Service {
 	}
 
 	/* Business methods */
-	void tryStartMng() {
+	void tryStartMng(int port) {
     	int resId = R.string.managementServerStillRunning;
     	if (!isMngRunning()) {
         	Log.d(LOGTAG, "trying to start mng, was not started !");
-        	startMngServer();
+        	startMngServer(port);
         	resId = R.string.mngStarted;
     	} else {
     		Log.d(LOGTAG, "trying to start mng, but already running !");
@@ -211,11 +235,11 @@ public class ServersControllerService extends Service {
     	Log.d(LOGTAG, "mng stop command finished");
 	}
 
-	void tryStartVnc() {
+	void tryStartVnc(int port, int scaleFactor) {
     	int resId = R.string.vncServerStillRunning;
     	if (!isVncRunning()) {
         	Log.d(LOGTAG, "trying to start vnc, was not started !");
-        	startVncServer();
+        	startVncServer(port,scaleFactor);
         	resId = R.string.vncStarted;
     	}
     	sendVncReply(getString(resId));
@@ -237,8 +261,11 @@ public class ServersControllerService extends Service {
 		}
 	}
 
-	private void startVncServer() throws VncException {
-		getVncWrapper().startVncServer();
+	private void startVncServer(int port, int scaleFactor) throws VncException {
+		VncServerWrapper wrapper = getVncWrapper();
+		wrapper.setListeningPort(port);
+		wrapper.setScaleFactor(scaleFactor);
+		wrapper.startVncServer();
 	}
 
 	private void stopVncServer() throws VncException {
@@ -246,13 +273,15 @@ public class ServersControllerService extends Service {
 	}
 
 	private void initVnc() {
-    	tryStartVnc();
-		mWathDogTask.setToRestartVnc(true);
+		tryStartVnc(VncServerWrapper.DEFAULT_PORT,
+				VncServerWrapper.DEFAULT_SCALE_FACTOR);
+		mWathDogTask.setToRestartVnc(true, VncServerWrapper.DEFAULT_PORT,
+				VncServerWrapper.DEFAULT_SCALE_FACTOR);
 	}
 	
 	private void initMng() {
-		tryStartMng();
-		mWathDogTask.setToRestartMng(true);
+		tryStartMng(ManagementServer.DEFAULT_PORT);
+		mWathDogTask.setToRestartMng(true, ManagementServer.DEFAULT_PORT);
 
 	}
 	
@@ -268,8 +297,10 @@ public class ServersControllerService extends Service {
 		return result;
 	}
 	
-	private void startMngServer() {
-		getMngServer().start();
+	private void startMngServer(int port) {
+		ManagementServer server = getMngServer();
+		server.setListeningPort(port);
+		server.start();
 		int numLoops = 0;
 		do {
 	    	SystemClock.sleep(20);

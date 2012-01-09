@@ -58,4 +58,10 @@
 	<string name="vncStopped">Vnc server Stopped</string>
 	<string name="mngStarted">Management server Started</string>
 	<string name="mngStopped">Management server Stopped</string>
+	<string name="vncPortNumber">5901</string>
+	<string name="mngPortNumber">5000</string>
+	<string-array name="deviceTypes">
+		<item >mobile</item>
+		<item >tablet</item>
+	</string-array>
 </resources>

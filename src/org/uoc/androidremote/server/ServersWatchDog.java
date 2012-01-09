@@ -23,6 +23,10 @@ public class ServersWatchDog extends TimerTask {
 	
 	ServersControllerService service;
 	
+	private int vncPort = VncServerWrapper.DEFAULT_PORT;
+	private int mngPort = ManagementServer.DEFAULT_PORT;
+	private int scaleFactor = VncServerWrapper.DEFAULT_SCALE_FACTOR;
+	
 	public ServersWatchDog(ServersControllerService service) {
 		super();
 		this.service = service;
@@ -30,6 +34,7 @@ public class ServersWatchDog extends TimerTask {
 	}
 	
 	private final String LOGTAG = ServersWatchDog.class.getSimpleName();
+
 
 	public void run() {
 		normalizeServersStates();
@@ -49,13 +54,13 @@ public class ServersWatchDog extends TimerTask {
 	 */
 	private void normalizeServersStates() {
 		if (shouldVncBeStarter) {
-			service.tryStartVnc();
+			service.tryStartVnc(vncPort, scaleFactor);
 		} else {
 			service.tryStopVnc();
 		}
 		
 		if (shouldMngBeStarted) {
-			service.tryStartMng();
+			service.tryStartMng(mngPort);
 		} else {
 			service.tryStopMng();
 		}		
@@ -78,9 +83,11 @@ public class ServersWatchDog extends TimerTask {
 			return shouldVncBeStarter;			
 		}
 	}
-	public void setToRestartVnc(boolean whish) {
+	public void setToRestartVnc(boolean whish, int port, int factor) {
 		synchronized (shouldVncBeStarter) {
-			shouldVncBeStarter = whish;			
+			shouldVncBeStarter = whish;
+			vncPort = port;
+			scaleFactor = factor;
 		}		
 	}
 	
@@ -89,10 +96,11 @@ public class ServersWatchDog extends TimerTask {
 			return shouldMngBeStarted;			
 		}
 	}
-	public void setToRestartMng(boolean whish) {
+	public void setToRestartMng(boolean whish, int port) {
 		synchronized (shouldMngBeStarted) {
-			shouldMngBeStarted = whish;			
-		}		
+			shouldMngBeStarted = whish;
+			mngPort = port;
+		}
 	}
 	
 }
