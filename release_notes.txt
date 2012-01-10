@@ -9,3 +9,10 @@ First release of the software comming from http://code.google.com/p/androidremot
  * Added watchdog to take care of the servers (every 5 seconds once is initiated)
  * BootReceiver to restart service once device is booted.
  * Added Reboot operation, just reboots the device via "reboot" command directly.
+ 2.1
+ ---
+ * Added options to set ports where the servers listen on vnc and managemnet 
+ servers.
+ * Added the setting to say we are in a tablet, so we can easily scale the 
+ screen size, in fact is just scaled to half of the size because don't have an 
+ easy control over it and the original vnc servers does not give us much control.
