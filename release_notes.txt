@@ -16,3 +16,6 @@ First release of the software comming from http://code.google.com/p/androidremot
  * Added the setting to say we are in a tablet, so we can easily scale the 
  screen size, in fact is just scaled to half of the size because don't have an 
  easy control over it and the original vnc servers does not give us much control.
+ 2.2
+ ---
+  * Option to start and stop via command line.

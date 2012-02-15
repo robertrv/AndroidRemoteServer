@@ -35,7 +35,6 @@ public class ServersWatchDog extends TimerTask {
 	
 	private final String LOGTAG = ServersWatchDog.class.getSimpleName();
 
-
 	public void run() {
 		normalizeServersStates();
 		logServerStates("Finished watching servers at ");
@@ -53,13 +52,13 @@ public class ServersWatchDog extends TimerTask {
 	 * restart any server, otherwise try to stop this server.
 	 */
 	private void normalizeServersStates() {
-		if (shouldVncBeStarter) {
+		if (hasToRestartVnc()) {
 			service.tryStartVnc(vncPort, scaleFactor);
 		} else {
 			service.tryStopVnc();
 		}
 		
-		if (shouldMngBeStarted) {
+		if (hasToRestartMng()) {
 			service.tryStartMng(mngPort);
 		} else {
 			service.tryStopMng();

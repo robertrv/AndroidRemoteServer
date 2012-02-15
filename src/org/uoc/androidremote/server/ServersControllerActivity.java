@@ -406,6 +406,7 @@ public class ServersControllerActivity extends Activity {
 
 		if (runningVnc) {
 			t.setText("http://" + host + ":" + vncPort);
+			vncPortText.setText(String.valueOf(vncPort));
 		} else {
 			t.setText("");
 		}
@@ -427,6 +428,7 @@ public class ServersControllerActivity extends Activity {
 
 		if (runningManagement) {
 			tGestion1.setText("IP: " + host + " Puerto: " + mngPort);
+			mngPortText.setText(String.valueOf(mngPort));
 		} else {
 			tGestion1.setText("");
 		}

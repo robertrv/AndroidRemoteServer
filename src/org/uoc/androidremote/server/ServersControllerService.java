@@ -54,7 +54,7 @@ public class ServersControllerService extends Service {
 	/** Delay until first execution of the Watch Dog.*/
 	private final long mDelay = 10000;
 	/** Period of the Log task. */
-	private final long mPeriod = 5000;
+	private final long mPeriod = 10000;
 	private final String LOGTAG = ServersControllerService.class.getSimpleName();
 	/** Timer to schedule the service. */
 	private Timer mTimer;
@@ -120,11 +120,17 @@ public class ServersControllerService extends Service {
 		if (intent != null && intent.getExtras() != null) {
 			Bundle extras = intent.getExtras();
 			if (extras.getBoolean("startVnc", false)) {
-				initVnc();
+				initVnc(extras.getInt("vncPort", VncServerWrapper.DEFAULT_PORT),
+						VncServerWrapper.DEFAULT_SCALE_FACTOR);
+			} else {
+				stopVnc();
 			}
 			if (extras.getBoolean("startMng", false)) {
-				initMng();
+				initMng(extras.getInt("mngPort", ManagementServer.DEFAULT_PORT));
+			} else {
+				stopMng();
 			}
+			
 		}
 		return START_STICKY;
 	}
@@ -272,17 +278,24 @@ public class ServersControllerService extends Service {
 		getVncWrapper().stopVncServer();
 	}
 
-	private void initVnc() {
-		tryStartVnc(VncServerWrapper.DEFAULT_PORT,
-				VncServerWrapper.DEFAULT_SCALE_FACTOR);
-		mWathDogTask.setToRestartVnc(true, VncServerWrapper.DEFAULT_PORT,
-				VncServerWrapper.DEFAULT_SCALE_FACTOR);
+	private void initVnc(int port, int factor) {
+		tryStartVnc(port,factor);
+		mWathDogTask.setToRestartVnc(true, port, factor);
 	}
 	
-	private void initMng() {
-		tryStartMng(ManagementServer.DEFAULT_PORT);
-		mWathDogTask.setToRestartMng(true, ManagementServer.DEFAULT_PORT);
-
+	private void stopVnc() {
+		mWathDogTask.setToRestartVnc(false, -1, -1);
+		tryStopVnc();
+	}
+	
+	private void initMng(int port) {
+		tryStartMng(port);
+		mWathDogTask.setToRestartMng(true, port);
+	}
+	
+	private void stopMng() {
+		mWathDogTask.setToRestartMng(false, -1);		
+		tryStopMng();
 	}
 	
 	boolean isVncRunning() {
