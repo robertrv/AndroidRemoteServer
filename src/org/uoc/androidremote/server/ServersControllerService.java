@@ -354,7 +354,6 @@ public class ServersControllerService extends Service {
 		return getVncWrapper().getListeningPort();
 	}
 	
-	
 	private void sendMngReply(String message) {
 		boolean currentMngRunning = isMngRunning();
 		if (cachedMngRunning != currentMngRunning) {
