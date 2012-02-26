@@ -11,11 +11,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.uoc.androidremote.operations.AndroidApplication;
-import org.uoc.androidremote.operations.LocationOperation;
 import org.uoc.androidremote.operations.AndroidRunningApplication;
 import org.uoc.androidremote.operations.AndroidService;
 import org.uoc.androidremote.operations.ApplicationsInstalled;
 import org.uoc.androidremote.operations.ApplicationsRunning;
+import org.uoc.androidremote.operations.LocationOperation;
 import org.uoc.androidremote.operations.Operation;
 import org.uoc.androidremote.operations.Reboot;
 import org.uoc.androidremote.operations.ServicesRunning;
@@ -40,34 +40,39 @@ import android.util.Log;
  * Server thread responsible for management tasks
  * 
  * @author robertrv [at] gmail
- *
+ * 
  */
 public class ManagementServer extends Thread {
-	
+
 	private static final String LOGTAG = ManagementServer.class.getSimpleName();
 
 	private ServerSocket listeningSocket;
 	private boolean keepListening = false;
 	private Socket send;
 	private Context context;
-	
+
 	private Integer batteryLevel = Integer.valueOf(0);
-	static final int PORT = 5000;
-	
+	static final int DEFAULT_PORT = 5000;
+	private int listeningPort = DEFAULT_PORT;
+
 	public ManagementServer(Context context) {
 		this.context = context;
 	}
 
 	public int getListeningPort() {
-		return PORT;
+		return listeningPort;
 	}
-	
+
+	public void setListeningPort(int port) {
+		listeningPort = port;
+	}
+
 	public void run() {
 		try {
-			listeningSocket = new ServerSocket(PORT);
-			Log.i(LOGTAG, "Puerto: " + PORT);
+			listeningSocket = new ServerSocket(listeningPort);
+			Log.i(LOGTAG, "Puerto: " + listeningPort);
 			batteryLevel();
-			
+
 			keepListening = true;
 			while (keepListening) {
 				ObjectOutputStream os = null;
@@ -75,79 +80,79 @@ public class ManagementServer extends Thread {
 				try {
 					// listen for incoming clients
 					send = listeningSocket.accept();
-					os = new ObjectOutputStream(
-							send.getOutputStream());
+					os = new ObjectOutputStream(send.getOutputStream());
 					os.flush();
-					in = new ObjectInputStream(
-							send.getInputStream());
+					in = new ObjectInputStream(send.getInputStream());
 
 					Operation o = (Operation) in.readObject();
 					os.flush();
 					switch (o.getId()) {
-						case Operation.OP_OPEN:
-							os.writeObject(new String("Conexión establecida"));
-							Utils.showClientConnected(context, o.getMessage() 
-									+ " " + send.getInetAddress());
-							break;
-						case Operation.OP_APPLICATIONS_RUNNING:
-							ApplicationsRunning apps = getApplications();
-							os.writeObject(apps);
-							break;
-						case Operation.OP_SERVICES_RUNNING:
-							ServicesRunning services = getServicesRunning();
-							os.writeObject(services);
-							break;
-						case Operation.OP_LOCATION_GPS:
-							LocationOperation location = getLocation();
-							os.writeObject(location);
-							break;
-						case Operation.OP_APPLICATIONS_INSTALLED:
-							ApplicationsInstalled appsInstalled = getInstalledApplications();
-							os.writeObject(appsInstalled);
-							break;
-						case Operation.OP_BATTERY_LEVEL:
-							Integer level = getBatteryStatus();
-							os.writeObject(level);
-							break;
-						case Operation.OP_REBOOT:
-							Reboot reboot = getRebootResult();
-							os.writeObject(reboot);
-							break;
-						case Operation.OP_CLOSE:
-							os.writeObject(new String("Conexión cerrada"));
-							Utils.showClientDisconnected(context);
-							break;
-						default:
-							break;
+					case Operation.OP_OPEN:
+						os.writeObject(new String("Conexión establecida"));
+						Utils.showClientConnected(context, o.getMessage() + " "
+								+ send.getInetAddress());
+						break;
+					case Operation.OP_APPLICATIONS_RUNNING:
+						ApplicationsRunning apps = getApplications();
+						os.writeObject(apps);
+						break;
+					case Operation.OP_SERVICES_RUNNING:
+						ServicesRunning services = getServicesRunning();
+						os.writeObject(services);
+						break;
+					case Operation.OP_LOCATION_GPS:
+						LocationOperation location = getLocation();
+						os.writeObject(location);
+						break;
+					case Operation.OP_APPLICATIONS_INSTALLED:
+						ApplicationsInstalled appsInstalled = getInstalledApplications();
+						os.writeObject(appsInstalled);
+						break;
+					case Operation.OP_BATTERY_LEVEL:
+						Integer level = getBatteryStatus();
+						os.writeObject(level);
+						break;
+					case Operation.OP_REBOOT:
+						Reboot reboot = getRebootResult();
+						os.writeObject(reboot);
+						break;
+					case Operation.OP_CLOSE:
+						os.writeObject(new String("Conexión cerrada"));
+						Utils.showClientDisconnected(context);
+						break;
+					default:
+						break;
 					}
 					Log.i(LOGTAG, o.getMessage());
 				} catch (SocketException se) {
-					if (se.getMessage().indexOf("Interrupted system call")>=0 || se.getMessage().indexOf("Socket closed")>=0) {
+					if (se.getMessage().indexOf("Interrupted system call") >= 0
+							|| se.getMessage().indexOf("Socket closed") >= 0) {
 						Log.d(LOGTAG, "Normal closing of management server");
 					} else {
 						Log.e(LOGTAG,
-								"Unexpected socket exception on management server", se);						
+								"Unexpected socket exception on management server",
+								se);
 					}
 				} catch (Exception e) {
 					Log.e(LOGTAG, "Unexpected error on management server", e);
 				} finally {
 					if (os != null) {
 						os.flush();
-						os.close();						
+						os.close();
 					}
-					if (in != null) {				
+					if (in != null) {
 						in.close();
 					}
 					if (send != null) {
-						send.close();						
+						send.close();
 					}
 				}
 			}
 		} catch (SocketException e) {
 			Log.e(LOGTAG, "Detectada socket exception", e);
 		} catch (IOException e) {
-			Log.e(LOGTAG, "Detectada exception entrada salida "
-					+ e.getMessage(), e);
+			Log.e(LOGTAG,
+					"Detectada exception entrada salida " + e.getMessage(), e);
 		}
 	}
 
@@ -158,7 +163,8 @@ public class ManagementServer extends Thread {
 	 */
 	private ApplicationsRunning getApplications() {
 		ApplicationsRunning apps = new ApplicationsRunning();
-		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context
+				.getSystemService(Context.ACTIVITY_SERVICE);
 		List<RunningAppProcessInfo> applications = activityManager
 				.getRunningAppProcesses();
 		PackageManager pm = context.getPackageManager();
@@ -171,7 +177,7 @@ public class ManagementServer extends Thread {
 				a.setImportance(application.importance);
 				apps.addApp(a);
 			} catch (NameNotFoundException e) {
-				Log.e(LOGTAG, "Cannot find Application: "+ application,e);
+				Log.e(LOGTAG, "Cannot find Application: " + application, e);
 			}
 
 		}
@@ -186,10 +192,9 @@ public class ManagementServer extends Thread {
 		BroadcastReceiver batteryLevelReceiver = new BroadcastReceiver() {
 			public void onReceive(Context context, Intent intent) {
 
-				int rawlevel = intent.getIntExtra(
-						BatteryManager.EXTRA_LEVEL, -1);
-				int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE,
+				int rawlevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL,
 						-1);
+				int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
 				int level = -1;
 				if (rawlevel >= 0 && scale > 0) {
 					level = (rawlevel * 100) / scale;
@@ -222,9 +227,9 @@ public class ManagementServer extends Thread {
 		// get a list of installed apps.
 		List<ApplicationInfo> packages = pm
 				.getInstalledApplications(PackageManager.GET_META_DATA);
-		for (Iterator<ApplicationInfo> iterator = packages.iterator(); iterator.hasNext();) {
-			ApplicationInfo applicationInfo = (ApplicationInfo) iterator
-					.next();
+		for (Iterator<ApplicationInfo> iterator = packages.iterator(); iterator
+				.hasNext();) {
+			ApplicationInfo applicationInfo = (ApplicationInfo) iterator.next();
 			AndroidApplication app = new AndroidApplication(
 					applicationInfo.packageName, pm.getApplicationLabel(
 							applicationInfo).toString());
@@ -240,7 +245,8 @@ public class ManagementServer extends Thread {
 	 */
 	private ServicesRunning getServicesRunning() {
 		ServicesRunning servicesRunning = new ServicesRunning();
-		ActivityManager activityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+		ActivityManager activityManager = (ActivityManager) context
+				.getSystemService(Context.ACTIVITY_SERVICE);
 		List<RunningServiceInfo> services = activityManager
 				.getRunningServices(30);
 		PackageManager pm = context.getPackageManager();
@@ -255,8 +261,7 @@ public class ManagementServer extends Thread {
 										PackageManager.GET_META_DATA))
 								.toString()));
 			} catch (NameNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
 		return servicesRunning;
@@ -268,7 +273,8 @@ public class ManagementServer extends Thread {
 	 * @return the location
 	 */
 	private LocationOperation getLocation() {
-		LocationManager mlocManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+		LocationManager mlocManager = (LocationManager) context
+				.getSystemService(Context.LOCATION_SERVICE);
 		Criteria crit = new Criteria();
 		crit.setAccuracy(Criteria.ACCURACY_FINE);
 		String provider = mlocManager.getBestProvider(crit, true);
@@ -283,28 +289,28 @@ public class ManagementServer extends Thread {
 			}
 		}
 		if (loc != null) {
-			return new LocationOperation(loc.getLatitude(),
-					loc.getAltitude());
+			return new LocationOperation(loc.getLatitude(), loc.getAltitude());
 		} else {
 			return new LocationOperation(
-					"Error trying to get location, no position available " +
-					"right now.");
+					"Error trying to get location, no position available "
+							+ "right now.");
 		}
 	}
-	
+
 	private Reboot getRebootResult() {
 		Reboot result = new Reboot();
 		try {
-		    Process sh = Runtime.getRuntime().exec("su");
+			Process sh = Runtime.getRuntime().exec("su");
 			OutputStream os = sh.getOutputStream();
 
-			/* TODO R: Think about options to reboot
-			 *  - Stop all the processes
-			 *  - Prepare processes to be started after reboot ? Maybe an start process which call wait-for-devices ?
+			/*
+			 * TODO R: Think about options to reboot - Stop all the processes -
+			 * Prepare processes to be started after reboot ? Maybe an start
+			 * process which call wait-for-devices ?
 			 */
-		    Utils.writeCommand(os, "reboot -n");
-		    
-		    result.setResult(true);
+			Utils.writeCommand(os, "reboot -n");
+
+			result.setResult(true);
 		} catch (Exception e) {
 			result.setResult(false);
 			result.setProblemMessage(e.getMessage());
@@ -317,13 +323,13 @@ public class ManagementServer extends Thread {
 		try {
 			keepListening = false;
 			if (listeningSocket != null) {
-				listeningSocket.close();				
+				listeningSocket.close();
 			}
 		} catch (IOException e) {
 			Log.e(LOGTAG, "Error trying to close the socket", e);
 		}
 	}
-	
+
 	public boolean isListeining() {
 		return keepListening;
 	}

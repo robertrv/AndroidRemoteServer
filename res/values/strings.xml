@@ -1,61 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-<string name="app_name">Android Remote</string>
-<string-array name="rotation_values">
-<item>0</item>
-<item>90</item>
-<item>180</item>
-<item>270</item>
-</string-array>
-<string-array name="rotation_strings">
-<item>0</item>
-<item>90</item>
-<item>180</item>
-<item>270</item>
-</string-array>
-<string-array name="scale_values">
-<item>150</item>
-<item>100</item>
-<item>50</item>
-<item>30</item>
-<item>20</item>
-</string-array>
-<string-array name="scale_strings">
-<item>150</item>
-<item>100</item>
-<item>50</item>
-<item>30</item>
-<item>20</item>
-</string-array>
-<string-array name="test_mode_strings">
-<item>0</item>
-<item>1</item>
-<item>2</item>
-<item>3</item>
-<item>4</item>
-</string-array>
-<string-array name="sleep_strings">
-<item>On</item>
-<item>Off</item>
-</string-array>
-<string-array name="startonboot_strings">
-<item>True</item>
-<item>False</item>
-</string-array>
-<string-array name="startonboot_values">
-<item>On</item>
-<item>Off</item>
-</string-array>
-	<string name="vncTitle">VNC server</string>
-	<string name="managementTitle">Management server</string>
-	<string name="startText">Start</string>
-	<string name="stopText">Stop</string>    
-	<string name="vncServerStillRunning">VNC server is still running</string>
-	<string name="managementServerStillRunning">Management server still running, try to close it before start again</string>
-	<string name="vncNotRunning">VNC server is not running</string>
-	<string name="managementNotRunning">Management server is not running</string>
-	<string name="vncStarted">Vnc server Started</string>
-	<string name="vncStopped">Vnc server Stopped</string>
-	<string name="mngStarted">Management server Started</string>
-	<string name="mngStopped">Management server Stopped</string>
+
+    <string name="app_name">Android Remote</string>
+
+    <string-array name="rotation_values">
+        <item>0</item>
+        <item>90</item>
+        <item>180</item>
+        <item>270</item>
+    </string-array>
+    <string-array name="rotation_strings">
+        <item>0</item>
+        <item>90</item>
+        <item>180</item>
+        <item>270</item>
+    </string-array>
+    <string-array name="scale_values">
+        <item>150</item>
+        <item>100</item>
+        <item>50</item>
+        <item>30</item>
+        <item>20</item>
+    </string-array>
+    <string-array name="scale_strings">
+        <item>150</item>
+        <item>100</item>
+        <item>50</item>
+        <item>30</item>
+        <item>20</item>
+    </string-array>
+    <string-array name="test_mode_strings">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </string-array>
+    <string-array name="sleep_strings">
+        <item>On</item>
+        <item>Off</item>
+    </string-array>
+    <string-array name="startonboot_strings">
+        <item>True</item>
+        <item>False</item>
+    </string-array>
+    <string-array name="startonboot_values">
+        <item>On</item>
+        <item>Off</item>
+    </string-array>
+
+    <string name="vncTitle">VNC server</string>
+    <string name="managementTitle">Management server</string>
+    <string name="startText">Start</string>
+    <string name="stopText">Stop</string>
+    <string name="vncServerStillRunning">VNC server is still running</string>
+    <string name="managementServerStillRunning">Management server still running, try to close it before start again</string>
+    <string name="vncNotRunning">VNC server is not running</string>
+    <string name="managementNotRunning">Management server is not running</string>
+    <string name="vncStarted">Vnc server Started</string>
+    <string name="vncStopped">Vnc server Stopped</string>
+    <string name="mngStarted">Management server Started</string>
+    <string name="mngStopped">Management server Stopped</string>
+    <string name="vncPortNumber">5901</string>
+    <string name="mngPortNumber">5000</string>
+
+    <string-array name="deviceTypes">
+        <item>mobile</item>
+        <item>tablet</item>
+    </string-array>
+
 </resources>

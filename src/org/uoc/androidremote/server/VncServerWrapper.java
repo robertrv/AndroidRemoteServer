@@ -15,8 +15,12 @@ public class VncServerWrapper {
 	private final static String LOGTAG = VncServerWrapper.class.getSimpleName();
 	private Context context;
 	
-	private int listeningPort = 5901;
-	
+	public static final int DEFAULT_PORT = 5901;
+	public static final int DEFAULT_SCALE_FACTOR = 100;
+
+	private int listeningPort = DEFAULT_PORT;
+	private int scaleFactor = DEFAULT_SCALE_FACTOR;
+
 	public VncServerWrapper(Context context) {
 		this.context = context;
 	}
@@ -91,11 +95,9 @@ public class VncServerWrapper {
 			String rotation = "0";
 			rotation = "-r " + rotation;
 
-			String scaling = "100";
-
 			String scaling_string = "";
-			if (!scaling.equals("0")) {
-				scaling_string = "-s " + scaling;
+			if (scaleFactor != 100) {
+				scaling_string = "-s " + scaleFactor;
 			}
 
 			String tm = "0";
@@ -167,6 +169,14 @@ public class VncServerWrapper {
 	
 	public int getListeningPort() {
 		return listeningPort;
+	}
+	
+	public void setListeningPort(int port) {
+		listeningPort = port;
+	}
+
+	public void setScaleFactor(int scaleFactor) {
+		this.scaleFactor = scaleFactor;
 	}
 
 }

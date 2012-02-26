@@ -54,7 +54,7 @@ public class ServersControllerService extends Service {
 	/** Delay until first execution of the Watch Dog.*/
 	private final long mDelay = 10000;
 	/** Period of the Log task. */
-	private final long mPeriod = 5000;
+	private final long mPeriod = 10000;
 	private final String LOGTAG = ServersControllerService.class.getSimpleName();
 	/** Timer to schedule the service. */
 	private Timer mTimer;
@@ -120,11 +120,17 @@ public class ServersControllerService extends Service {
 		if (intent != null && intent.getExtras() != null) {
 			Bundle extras = intent.getExtras();
 			if (extras.getBoolean("startVnc", false)) {
-				initVnc();
+				initVnc(extras.getInt("vncPort", VncServerWrapper.DEFAULT_PORT),
+						VncServerWrapper.DEFAULT_SCALE_FACTOR);
+			} else {
+				stopVnc();
 			}
 			if (extras.getBoolean("startMng", false)) {
-				initMng();
+				initMng(extras.getInt("mngPort", ManagementServer.DEFAULT_PORT));
+			} else {
+				stopMng();
 			}
+			
 		}
 		return START_STICKY;
 	}
@@ -141,26 +147,41 @@ public class ServersControllerService extends Service {
             switch (ServiceAction.fromCode(msg.what)) {
                 case START_VNC:
                 	cachedVncRunning = false;
+					int vncPort = getIntOrDefault(msg,
+							VncServerWrapper.DEFAULT_PORT,
+							ServersControllerActivity.PORT_BUNDLE_KEY);
+					int scaleFactor = getIntOrDefault(msg,
+							VncServerWrapper.DEFAULT_SCALE_FACTOR,
+							ServersControllerActivity.SCALE_FACTOR_BUNDLE_KEY);
+
                 	ServersControllerService.this.mWathDogTask
-						.setToRestartVnc(true);
-                	ServersControllerService.this.tryStartVnc();                	
+						.setToRestartVnc(true, vncPort, scaleFactor);
+                	
+                	ServersControllerService.this.tryStartVnc(vncPort, 
+                			scaleFactor);
                     break;
                 case STOP_VNC:
                 	cachedVncRunning = true;
-                	ServersControllerService.this.mWathDogTask
-						.setToRestartVnc(false);
+					ServersControllerService.this.mWathDogTask.setToRestartVnc(
+							false, VncServerWrapper.DEFAULT_PORT,
+							VncServerWrapper.DEFAULT_SCALE_FACTOR);
             		ServersControllerService.this.tryStopVnc();                	
                 	break;
                 case START_MNG:
                 	cachedMngRunning = false;
+					int mngPort = getIntOrDefault(msg,
+							ManagementServer.DEFAULT_PORT,
+							ServersControllerActivity.PORT_BUNDLE_KEY);
+
                 	ServersControllerService.this.mWathDogTask
-						.setToRestartMng(true);
-            		ServersControllerService.this.tryStartMng();                	
+						.setToRestartMng(true, mngPort);
+
+                	ServersControllerService.this.tryStartMng(mngPort);                	
                     break;
                 case STOP_MNG:
                 	cachedMngRunning = true;
                 	ServersControllerService.this.mWathDogTask
-						.setToRestartMng(false);
+						.setToRestartMng(false, ManagementServer.DEFAULT_PORT);
             		ServersControllerService.this.tryStopMng();                	
                 	break;
                 case GET_ALL_SERVER_STATUS:
@@ -172,6 +193,15 @@ public class ServersControllerService extends Service {
         }
     }
     
+    private int getIntOrDefault(Message msg, int defaultValue, String key) {
+    	int port = defaultValue;
+		if (msg.getData() != null
+				&& msg.getData().getInt(key) > 0) {
+			port = msg.getData().getInt(key);
+		}
+		return port;
+
+    }
 	
 	@Override
 	public IBinder onBind(final Intent intent) {
@@ -187,11 +217,11 @@ public class ServersControllerService extends Service {
 	}
 
 	/* Business methods */
-	void tryStartMng() {
+	void tryStartMng(int port) {
     	int resId = R.string.managementServerStillRunning;
     	if (!isMngRunning()) {
         	Log.d(LOGTAG, "trying to start mng, was not started !");
-        	startMngServer();
+        	startMngServer(port);
         	resId = R.string.mngStarted;
     	} else {
     		Log.d(LOGTAG, "trying to start mng, but already running !");
@@ -211,11 +241,11 @@ public class ServersControllerService extends Service {
     	Log.d(LOGTAG, "mng stop command finished");
 	}
 
-	void tryStartVnc() {
+	void tryStartVnc(int port, int scaleFactor) {
     	int resId = R.string.vncServerStillRunning;
     	if (!isVncRunning()) {
         	Log.d(LOGTAG, "trying to start vnc, was not started !");
-        	startVncServer();
+        	startVncServer(port,scaleFactor);
         	resId = R.string.vncStarted;
     	}
     	sendVncReply(getString(resId));
@@ -237,23 +267,35 @@ public class ServersControllerService extends Service {
 		}
 	}
 
-	private void startVncServer() throws VncException {
-		getVncWrapper().startVncServer();
+	private void startVncServer(int port, int scaleFactor) throws VncException {
+		VncServerWrapper wrapper = getVncWrapper();
+		wrapper.setListeningPort(port);
+		wrapper.setScaleFactor(scaleFactor);
+		wrapper.startVncServer();
 	}
 
 	private void stopVncServer() throws VncException {
 		getVncWrapper().stopVncServer();
 	}
 
-	private void initVnc() {
-    	tryStartVnc();
-		mWathDogTask.setToRestartVnc(true);
+	private void initVnc(int port, int factor) {
+		tryStartVnc(port,factor);
+		mWathDogTask.setToRestartVnc(true, port, factor);
 	}
 	
-	private void initMng() {
-		tryStartMng();
-		mWathDogTask.setToRestartMng(true);
-
+	private void stopVnc() {
+		mWathDogTask.setToRestartVnc(false, -1, -1);
+		tryStopVnc();
+	}
+	
+	private void initMng(int port) {
+		tryStartMng(port);
+		mWathDogTask.setToRestartMng(true, port);
+	}
+	
+	private void stopMng() {
+		mWathDogTask.setToRestartMng(false, -1);		
+		tryStopMng();
 	}
 	
 	boolean isVncRunning() {
@@ -268,8 +310,10 @@ public class ServersControllerService extends Service {
 		return result;
 	}
 	
-	private void startMngServer() {
-		getMngServer().start();
+	private void startMngServer(int port) {
+		ManagementServer server = getMngServer();
+		server.setListeningPort(port);
+		server.start();
 		int numLoops = 0;
 		do {
 	    	SystemClock.sleep(20);

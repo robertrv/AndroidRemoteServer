@@ -62,6 +62,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -79,6 +81,9 @@ public class ServersControllerActivity extends Activity {
 
 	private static final String LOGTAG = ServersControllerActivity.class
 			.getSimpleName();
+	
+	static final String PORT_BUNDLE_KEY = "port";
+	static final String SCALE_FACTOR_BUNDLE_KEY = "scale_factor";
 
 	/** The Constant APP_ID. */
 	static final int APP_ID = 1206;
@@ -87,9 +92,9 @@ public class ServersControllerActivity extends Activity {
 	AlertDialog startDialog;
 
 	private boolean vncRunning = false;
-	private int vncPort = 5901;
+	private Integer vncPort = VncServerWrapper.DEFAULT_PORT;
 	private boolean mngRunning = false;
-	private int mngPort = ManagementServer.PORT;
+	private Integer mngPort = ManagementServer.DEFAULT_PORT;
 
 	/** Messenger for communicating with service. */
 	Messenger serviceMessenger = null;
@@ -145,7 +150,7 @@ public class ServersControllerActivity extends Activity {
 			// representation of that from the raw service object.
 			serviceMessenger = new Messenger(service);
 			Log.d(this.getClass().getSimpleName(), "attached to service");
-			sendMessageToService(ServiceAction.GET_ALL_SERVER_STATUS);
+			sendMessageToService(ServiceAction.GET_ALL_SERVER_STATUS, null);
 		}
 
 		public void onServiceDisconnected(ComponentName className) {
@@ -227,13 +232,22 @@ public class ServersControllerActivity extends Activity {
 		findViewById(R.id.Button01).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				sendMessageToService(ServiceAction.START_VNC);
+				Bundle data = new Bundle();
+				vncPort = getIntIfPossibleAndUpdateCache(R.id.vncPort, vncPort);
+				data.putInt(PORT_BUNDLE_KEY, vncPort);
+				Spinner deviceType = (Spinner) findViewById(R.id.deviceType);
+				int position = deviceType.getSelectedItemPosition(); 
+				// 0 => mobile, 1 => tablet
+				int scaleFactor = (position == 0)?100:50;
+				data.putInt(SCALE_FACTOR_BUNDLE_KEY, scaleFactor);
+				
+				sendMessageToService(ServiceAction.START_VNC, data);
 			}
 		});
 		findViewById(R.id.Button02).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				sendMessageToService(ServiceAction.STOP_VNC);
+				sendMessageToService(ServiceAction.STOP_VNC, null);
 			}
 		});
 
@@ -241,18 +255,34 @@ public class ServersControllerActivity extends Activity {
 				new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
-						sendMessageToService(ServiceAction.START_MNG);
+						Bundle data = new Bundle(1);
+						mngPort = getIntIfPossibleAndUpdateCache(R.id.mngPort, mngPort);
+						data.putInt(PORT_BUNDLE_KEY, mngPort);
+
+						sendMessageToService(ServiceAction.START_MNG, data);
 					}
 				});
 		findViewById(R.id.ButtonGestionStop).setOnClickListener(
 				new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
-						sendMessageToService(ServiceAction.STOP_MNG);
+					 	sendMessageToService(ServiceAction.STOP_MNG, null);
 					}
 				});
+		// TODO R: Set device type depending on the screen size 
 	}
 
+	private int getIntIfPossibleAndUpdateCache(int rId, Integer cache){
+		EditText editText = (EditText) findViewById(rId);
+		String inputPort = editText
+				.getText().toString();
+		try {
+			return Integer.valueOf(inputPort);
+		} catch (NumberFormatException ignored) {
+			editText.setText(String.valueOf(cache));
+			return cache;
+		}
+	}
 	@Override
 	protected void onResume() {
 		super.onResume();
@@ -264,10 +294,13 @@ public class ServersControllerActivity extends Activity {
 		doBindService();
 	}
 
-	private void sendMessageToService(ServiceAction action) {
+	private void sendMessageToService(ServiceAction action, Bundle data) {
 		try {
 			Message msg = Message.obtain(null, action.what);
 			msg.replyTo = mMessenger;
+			if (data != null) {
+				msg.setData(data);
+			}
 			serviceMessenger.send(msg);
 		} catch (RemoteException e) {
 			Log.e(LOGTAG, "error sending action " + action
@@ -276,7 +309,7 @@ public class ServersControllerActivity extends Activity {
 		}
 	}
 
-	public boolean checkBusybox() {
+	private boolean checkBusybox() {
 		boolean has = Utils.hasBusybox();
 		startDialog = new AlertDialog.Builder(this).create();
 		if (!has) {
@@ -310,7 +343,7 @@ public class ServersControllerActivity extends Activity {
 		return has;
 	}
 
-	public void showTextOnScreen(final String t) {
+	private void showTextOnScreen(final String t) {
 		runOnUiThread(new Runnable() {
 			public void run() {
 				if (ServersControllerActivity.this.toast != null) {
@@ -337,7 +370,7 @@ public class ServersControllerActivity extends Activity {
 	 * Set the state labels depending on current status of sockets and internal
 	 * server information.
 	 */
-	public void setStateLabels() {
+	private void setStateLabels() {
 		setStateLabels(vncRunning, mngRunning);
 	}
 
@@ -349,7 +382,7 @@ public class ServersControllerActivity extends Activity {
 	 * @param runningManagement
 	 *            the state gestion
 	 */
-	public void setStateLabels(boolean runningVnc, boolean runningManagement) {
+	private void setStateLabels(boolean runningVnc, boolean runningManagement) {
 		TextView stateLabel = (TextView) findViewById(R.id.stateLabel);
 		stateLabel.setText(runningVnc ? "Running" : "Stopped");
 		stateLabel.setTextColor(runningVnc ? Color.GREEN : Color.RED);
@@ -358,6 +391,11 @@ public class ServersControllerActivity extends Activity {
 		Button btnStop = (Button) findViewById(R.id.Button02);
 		btnStart.setEnabled(!runningVnc);
 		btnStop.setEnabled(runningVnc);
+		EditText vncPortText = (EditText) findViewById(R.id.vncPort);
+		vncPortText.setEnabled(!runningVnc);
+		Spinner deviceType = (Spinner) findViewById(R.id.deviceType);
+		deviceType.setEnabled(!runningVnc);
+		
 		TextView t = (TextView) findViewById(R.id.TextView01);
 
 		String host = "localhost";
@@ -368,9 +406,11 @@ public class ServersControllerActivity extends Activity {
 
 		if (runningVnc) {
 			t.setText("http://" + host + ":" + vncPort);
+			vncPortText.setText(String.valueOf(vncPort));
 		} else {
 			t.setText("");
 		}
+
 
 		TextView stateGestionLabel = (TextView) findViewById(R.id.stateGestionLabel);
 		stateGestionLabel.setText(runningManagement ? "Running" : "Stopped");
@@ -382,15 +422,19 @@ public class ServersControllerActivity extends Activity {
 		btnStartGestion.setEnabled(!runningManagement);
 		btnStopGestion.setEnabled(runningManagement);
 		TextView tGestion1 = (TextView) findViewById(R.id.TextViewGestion01);
+		EditText mngPortText = (EditText) findViewById(R.id.mngPort);
+		mngPortText.setEnabled(!runningManagement);
+		
 
 		if (runningManagement) {
 			tGestion1.setText("IP: " + host + " Puerto: " + mngPort);
+			mngPortText.setText(String.valueOf(mngPort));
 		} else {
 			tGestion1.setText("");
 		}
 	}
 
-	public String getIpAddress() {
+	private String getIpAddress() {
 		try {
 			for (Enumeration<NetworkInterface> en = NetworkInterface
 					.getNetworkInterfaces(); en.hasMoreElements();) {
