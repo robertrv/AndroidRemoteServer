@@ -94,7 +94,6 @@ public class AppServer extends Application {
 	public void createBinary()  
 	{
 		copyBinary(R.raw.androidvncserver, getFilesDir().getAbsolutePath() + "/androidvncserver");
-		copyBinary(R.raw.vncviewer, getFilesDir().getAbsolutePath()+"/VncViewer.jar");
 		copyBinary(R.raw.indexvnc, getFilesDir().getAbsolutePath()+"/index.vnc");
 
 		Process sh;
