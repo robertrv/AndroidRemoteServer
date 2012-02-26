@@ -17,9 +17,11 @@ public class VncServerWrapper {
 	
 	public static final int DEFAULT_PORT = 5901;
 	public static final int DEFAULT_SCALE_FACTOR = 100;
+	public static final int DEFAULT_ROTATION_FACTOR = 0;
 
 	private int listeningPort = DEFAULT_PORT;
 	private int scaleFactor = DEFAULT_SCALE_FACTOR;
+	private int rotation = DEFAULT_ROTATION_FACTOR;
 
 	public VncServerWrapper(Context context) {
 		this.context = context;
@@ -69,19 +71,6 @@ public class VncServerWrapper {
 
 	}
 
-//	public void startVncServerOnDifferentThread() {
-//		if (isVncServerRunning())
-//			showTextOnScreen("Server is already running, stop it first");
-//		else {
-//			Thread t = new Thread() {
-//				public void run() {
-//					startVncServer();
-//				}
-//			};
-//			t.start();
-//		}
-//	}
-
 	public void startVncServer() throws VncException {
 		try {
 			Process sh;
@@ -92,8 +81,7 @@ public class VncServerWrapper {
 				password_check = "-p " + password;
 			}
 
-			String rotation = "0";
-			rotation = "-r " + rotation;
+			String rotationOption = "-r " + rotation;
 
 			String scaling_string = "";
 			if (scaleFactor != 100) {
@@ -112,12 +100,12 @@ public class VncServerWrapper {
 			Utils.writeCommand(os, "chmod 777 " + context.getFilesDir().getAbsolutePath()
 					+ "/androidvncserver");
 			Utils.writeCommand(os, context.getFilesDir().getAbsolutePath()
-					+ "/androidvncserver " + password_check + " " + rotation
+					+ "/androidvncserver " + password_check + " " + rotationOption
 					+ " " + scaling_string + " " + port_string + " " + testmode);
 
 			// dont show password on logcat
 			Log.v(LOGTAG, "Starting " + context.getFilesDir().getAbsolutePath()
-					+ "/androidvncserver " + " " + rotation + " "
+					+ "/androidvncserver " + " " + rotationOption + " "
 					+ scaling_string + " " + port_string + " " + testmode);
 			int numLoops = 0;
 			do {
@@ -178,5 +166,8 @@ public class VncServerWrapper {
 	public void setScaleFactor(int scaleFactor) {
 		this.scaleFactor = scaleFactor;
 	}
-
+	
+	public void setRotation(int rotation) {
+		this.rotation = rotation;
+	}
 }

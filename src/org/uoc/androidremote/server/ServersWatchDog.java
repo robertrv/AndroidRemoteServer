@@ -26,6 +26,7 @@ public class ServersWatchDog extends TimerTask {
 	private int vncPort = VncServerWrapper.DEFAULT_PORT;
 	private int mngPort = ManagementServer.DEFAULT_PORT;
 	private int scaleFactor = VncServerWrapper.DEFAULT_SCALE_FACTOR;
+	private int rotation = VncServerWrapper.DEFAULT_ROTATION_FACTOR;
 	
 	public ServersWatchDog(ServersControllerService service) {
 		super();
@@ -53,7 +54,7 @@ public class ServersWatchDog extends TimerTask {
 	 */
 	private void normalizeServersStates() {
 		if (hasToRestartVnc()) {
-			service.tryStartVnc(vncPort, scaleFactor);
+			service.tryStartVnc(vncPort, scaleFactor, rotation);
 		} else {
 			service.tryStopVnc();
 		}
@@ -82,11 +83,14 @@ public class ServersWatchDog extends TimerTask {
 			return shouldVncBeStarter;			
 		}
 	}
-	public void setToRestartVnc(boolean whish, int port, int factor) {
+
+	public void setToRestartVnc(boolean whish, int port, int factor,
+			int rotationRequired) {
 		synchronized (shouldVncBeStarter) {
 			shouldVncBeStarter = whish;
 			vncPort = port;
 			scaleFactor = factor;
+			rotation = rotationRequired;
 		}		
 	}
 	

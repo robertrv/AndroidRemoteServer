@@ -19,3 +19,6 @@ First release of the software comming from http://code.google.com/p/androidremot
  2.2
  ---
   * Option to start and stop via command line.
+2.3
+---
+ * Added more options to the command line: rotation & scaleFactor

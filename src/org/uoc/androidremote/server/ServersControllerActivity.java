@@ -83,7 +83,8 @@ public class ServersControllerActivity extends Activity {
 			.getSimpleName();
 	
 	static final String PORT_BUNDLE_KEY = "port";
-	static final String SCALE_FACTOR_BUNDLE_KEY = "scale_factor";
+	static final String SCALE_FACTOR_BUNDLE_KEY = "scaleFactor";
+	static final String ROTATION_BUNDLE_KEY = "rotation";
 
 	/** The Constant APP_ID. */
 	static final int APP_ID = 1206;

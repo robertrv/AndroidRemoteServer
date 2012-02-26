@@ -121,7 +121,11 @@ public class ServersControllerService extends Service {
 			Bundle extras = intent.getExtras();
 			if (extras.getBoolean("startVnc", false)) {
 				initVnc(extras.getInt("vncPort", VncServerWrapper.DEFAULT_PORT),
-						VncServerWrapper.DEFAULT_SCALE_FACTOR);
+						extras.getInt("scaleFactor",
+								VncServerWrapper.DEFAULT_SCALE_FACTOR),
+						extras.getInt("rotation",
+								VncServerWrapper.DEFAULT_ROTATION_FACTOR)
+						);
 			} else {
 				stopVnc();
 			}
@@ -153,18 +157,22 @@ public class ServersControllerService extends Service {
 					int scaleFactor = getIntOrDefault(msg,
 							VncServerWrapper.DEFAULT_SCALE_FACTOR,
 							ServersControllerActivity.SCALE_FACTOR_BUNDLE_KEY);
+					int rotation = getIntOrDefault(msg,
+							VncServerWrapper.DEFAULT_ROTATION_FACTOR,
+							ServersControllerActivity.ROTATION_BUNDLE_KEY);
 
                 	ServersControllerService.this.mWathDogTask
-						.setToRestartVnc(true, vncPort, scaleFactor);
+						.setToRestartVnc(true, vncPort, scaleFactor, rotation);
                 	
                 	ServersControllerService.this.tryStartVnc(vncPort, 
-                			scaleFactor);
+                			scaleFactor, rotation);
                     break;
                 case STOP_VNC:
                 	cachedVncRunning = true;
 					ServersControllerService.this.mWathDogTask.setToRestartVnc(
 							false, VncServerWrapper.DEFAULT_PORT,
-							VncServerWrapper.DEFAULT_SCALE_FACTOR);
+							VncServerWrapper.DEFAULT_SCALE_FACTOR,
+							VncServerWrapper.DEFAULT_ROTATION_FACTOR);
             		ServersControllerService.this.tryStopVnc();                	
                 	break;
                 case START_MNG:
@@ -194,12 +202,12 @@ public class ServersControllerService extends Service {
     }
     
     private int getIntOrDefault(Message msg, int defaultValue, String key) {
-    	int port = defaultValue;
+    	int intFound = defaultValue;
 		if (msg.getData() != null
 				&& msg.getData().getInt(key) > 0) {
-			port = msg.getData().getInt(key);
+			intFound = msg.getData().getInt(key);
 		}
-		return port;
+		return intFound;
 
     }
 	
@@ -241,11 +249,11 @@ public class ServersControllerService extends Service {
     	Log.d(LOGTAG, "mng stop command finished");
 	}
 
-	void tryStartVnc(int port, int scaleFactor) {
+	void tryStartVnc(int port, int scaleFactor, int rotation) {
     	int resId = R.string.vncServerStillRunning;
     	if (!isVncRunning()) {
         	Log.d(LOGTAG, "trying to start vnc, was not started !");
-        	startVncServer(port,scaleFactor);
+        	startVncServer(port,scaleFactor, rotation);
         	resId = R.string.vncStarted;
     	}
     	sendVncReply(getString(resId));
@@ -267,10 +275,12 @@ public class ServersControllerService extends Service {
 		}
 	}
 
-	private void startVncServer(int port, int scaleFactor) throws VncException {
+	private void startVncServer(int port, int scaleFactor, int rotation)
+			throws VncException {
 		VncServerWrapper wrapper = getVncWrapper();
 		wrapper.setListeningPort(port);
 		wrapper.setScaleFactor(scaleFactor);
+		wrapper.setRotation(rotation);
 		wrapper.startVncServer();
 	}
 
@@ -278,13 +288,13 @@ public class ServersControllerService extends Service {
 		getVncWrapper().stopVncServer();
 	}
 
-	private void initVnc(int port, int factor) {
-		tryStartVnc(port,factor);
-		mWathDogTask.setToRestartVnc(true, port, factor);
+	private void initVnc(int port, int factor, int rotation) {
+		tryStartVnc(port,factor,rotation);
+		mWathDogTask.setToRestartVnc(true, port, factor, rotation);
 	}
 	
 	private void stopVnc() {
-		mWathDogTask.setToRestartVnc(false, -1, -1);
+		mWathDogTask.setToRestartVnc(false, -1, -1, -1);
 		tryStopVnc();
 	}
 	
