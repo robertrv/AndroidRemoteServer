@@ -107,8 +107,7 @@ containing a value of this type.
     public static final class raw {
         public static final int androidvncserver=0x7f040000;
         public static final int busybox=0x7f040001;
-        public static final int indexvnc=0x7f040002;
-        public static final int su=0x7f040003;
+        public static final int su=0x7f040002;
     }
     public static final class string {
         public static final int app_name=0x7f050000;

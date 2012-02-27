@@ -65,7 +65,7 @@ public class AppServer extends Application {
 		}
 	}
 
-	public boolean isFirstRun()
+	private boolean isFirstRun()
 	{
 		int versionCode = 0;
 		try {
@@ -91,10 +91,9 @@ public class AppServer extends Application {
 		return true;
 	}
 
-	public void createBinary()  
+	private void createBinary()  
 	{
 		copyBinary(R.raw.androidvncserver, getFilesDir().getAbsolutePath() + "/androidvncserver");
-		copyBinary(R.raw.indexvnc, getFilesDir().getAbsolutePath()+"/index.vnc");
 
 		Process sh;
 		try {
@@ -114,7 +113,7 @@ public class AppServer extends Application {
 		}
 	}
 
-	public void copyBinary(int id,String path)
+	private void copyBinary(int id,String path)
 	{
 		try {
 			InputStream ins = getResources().openRawResource(id);
@@ -137,7 +136,7 @@ public class AppServer extends Application {
 
 	}  
 
-	static void writeCommand(OutputStream os, String command) throws Exception
+	private void writeCommand(OutputStream os, String command) throws Exception
 	{
 		os.write((command + "\n").getBytes("ASCII"));
 	} 

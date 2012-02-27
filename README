@@ -21,8 +21,9 @@ Dependencies
 In order to execute it you need a rooted device with busybox
  (http://busybox.net/) available on your path.
  
-The VNC server is based on http://libvncserver.sourceforge.net/ which is used 
-with android NDK to execute it. 
+The VNC server is based on droid vnc server [1] which is based  on libvncserver 
+[2] which is compiled using with android NDK to execute it. We just include 
+the executable itself. 
 
 Use
 ===
@@ -36,3 +37,6 @@ And then just install the AndroidRemoteServer.apk directly and execute it.
 Once is executing simply you can execute the AndroidRemoteClient and connect to 
 localhost with default port (5901). Also you can connect through any VPN client
 to the server through localhost and the previous port.
+
+[1] https://github.com/oNaiPs/droid-VNC-server
+[2] http://libvncserver.sourceforge.net/
