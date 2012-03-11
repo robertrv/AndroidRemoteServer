@@ -1,4 +1,4 @@
-
+/** NOT WORKING !*/
 /*
  1.- Start emulator: 
 		emulator -avd first -partition-size 128
@@ -20,30 +20,30 @@
  * In order to comunicate from our PC's to the server running inside the emulator the option is to use port forwarding: 
    adb forward tcp:5901 tcp:5901
 */
-apply plugin: 'java'
-apply plugin: 'eclipse'
+apply plugin: "java"
 
-buildscript {
-  repositories {
-	mavenRepo urls:'http://repo.smokejumperit.com'
-  }
-  dependencies {
-	classpath 'com.smokejumperit:gradle-plugins:0.8.1-SNAPSHOT'
-  }
+task ls(type:Exec) { 
+  commandLine = ['ls', '-la']
+  workingDir = file('.') 
 }
 
-apply plugin:com.smokejumperit.gradle.AllPlugins
-
-//buildscript {
-//    // using a variable to make wiki look cleaner
-//    def githubBase = 'https://github.com/valkolovos/gradle_cobertura/raw/master/ivy'
-//    apply from: "${githubBase}/gradle_cobertura/gradle_cobertura/1.0-rc4/coberturainit.gradle"
-//}
-
-task prepareEmulator {
-	println "before"
-	println project.exec
-	//project.exec("ls", "-al", project.buildDir)
-	println "after"
+/**
+	Requires a command line parameter to specify the emulator
+*/
+task startEmulator(type:Exec) {
+	commandLine = ["./prepare.sh","$avd"]
 }
 
+task startServer(type:Exec) {
+	if (hasProperty("serial")) {
+		args=["-s","$serial"]
+	}
+	commandLine = ["adb","shell","am","startservice","-a",
+		"org.uoc.androidremote.server.ServersControllerService"]	
+}
+
+task stopServers(type:Exec) {
+	commandLine = ["adb","shell","am","startservice","-a",
+		"org.uoc.androidremote.server.ServersControllerService", 
+		"--ez","startVnc","false","--ez","startMng","false"]
+}

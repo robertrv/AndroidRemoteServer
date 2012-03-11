@@ -20,8 +20,6 @@ package org.uoc.androidremote.operations;
 import java.io.Serializable;
 
 /**
- * The Class Operation.
- * 
  * @author angel
  */
 public class Operation implements Serializable {
@@ -34,6 +32,7 @@ public class Operation implements Serializable {
     public static final int OP_APPLICATIONS_INSTALLED = 5;
     public static final int OP_BATTERY_LEVEL = 6;
     public static final int OP_REBOOT = 7;
+    public static final int OP_INSTALL_APPLICATION = 8;
     private static final long serialVersionUID = 1L;
     
     /** The id. */
