@@ -1,5 +1,7 @@
 package org.uoc.androidremote.server;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -15,6 +17,7 @@ import org.uoc.androidremote.operations.AndroidRunningApplication;
 import org.uoc.androidremote.operations.AndroidService;
 import org.uoc.androidremote.operations.ApplicationsInstalled;
 import org.uoc.androidremote.operations.ApplicationsRunning;
+import org.uoc.androidremote.operations.InstallApplication;
 import org.uoc.androidremote.operations.LocationOperation;
 import org.uoc.androidremote.operations.Operation;
 import org.uoc.androidremote.operations.Reboot;
@@ -116,6 +119,10 @@ public class ManagementServer extends Thread {
 						Reboot reboot = getRebootResult();
 						os.writeObject(reboot);
 						break;
+					case Operation.OP_INSTALL_APPLICATION:
+						Operation result = installApplication((InstallApplication)o);
+						os.writeObject(result);
+						break;
 					case Operation.OP_CLOSE:
 						os.writeObject(new String("Conexión cerrada"));
 						Utils.showClientDisconnected(context);
@@ -154,6 +161,35 @@ public class ManagementServer extends Thread {
 			Log.e(LOGTAG,
 					"Detectada exception entrada salida " + e.getMessage(), e);
 		}
+	}
+
+	private Operation installApplication(InstallApplication installAppOperation) {
+		Operation result = new Operation(Operation.OP_INSTALL_APPLICATION,"");
+		try {
+			Process sh = Runtime.getRuntime().exec("su");
+			OutputStream os = sh.getOutputStream();
+			
+			byte[] buffer = installAppOperation.getFile();
+			
+			String path = context.getFilesDir().getAbsolutePath()
+					+ File.separator + installAppOperation.getFileName();
+
+			FileOutputStream fos = new FileOutputStream(path);
+			fos.write(buffer);
+			fos.close();
+
+			Utils.writeCommand(os, "chmod 777 " + path);
+			Utils.writeCommand(os, "pm install -r "+path);
+
+//			Utils.writeCommand(os, "rm "+path);
+			
+			result.setMessage("Sucessfully installed");
+			Log.d(LOGTAG, "Sucessfully installed application on path: "+path);
+		} catch (Exception e) {
+			result.setMessage("Exception: " + e.getMessage());
+			Log.e(LOGTAG, "Error trying to reboot device", e);
+		}
+		return result;
 	}
 
 	/**

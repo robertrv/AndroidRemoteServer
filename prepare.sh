@@ -25,15 +25,15 @@ do
 done
 echo "serial: $serial"
 
-adb -s $serial -e wait-for-device
-adb -s $serial -e remount
-adb -s $serial -e push ./res/raw/su /system/bin
-adb -s $serial -e shell chmod 6755 /system/bin/su
-adb -s $serial -e shell rm /system/xbin/su
-adb -s $serial -e shell ln -s /system/bin/su /system/xbin/su
-adb -s $serial -e push ./res/raw/busybox /system/bin
-adb -s $serial -e shell chmod 6755 /system/bin/busybox
-adb -s $serial -e install ./others/SuperUser.apk
+adb -s $serial wait-for-device
+adb -s $serial remount
+adb -s $serial push ./res/raw/su /system/bin
+adb -s $serial shell chmod 6755 /system/bin/su
+adb -s $serial shell rm /system/xbin/su
+adb -s $serial shell ln -s /system/bin/su /system/xbin/su
+adb -s $serial push ./res/raw/busybox /system/bin
+adb -s $serial shell chmod 6755 /system/bin/busybox
+adb -s $serial install -r ./others/SuperUser.apk
 adb -s $serial forward tcp:5901 tcp:5901
 adb -s $serial forward tcp:5000 tcp:5000
 

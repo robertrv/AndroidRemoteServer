@@ -51,7 +51,7 @@ import android.util.Log;
  */
 public class AppServer extends Application {
 
-	private static final String LOGTAG = "VNC";
+	private static final String LOGTAG = AppServer.class.getSimpleName();
 
 	/* (non-Javadoc)
 	 * @see android.app.Application#onCreate()
