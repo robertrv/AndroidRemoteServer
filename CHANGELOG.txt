@@ -1,5 +1,8 @@
 Relase Notes
 ============
+2.4
+---
+ * Install application feature
 2.3
 ---
  * Added more options to the command line: rotation & scaleFactor
