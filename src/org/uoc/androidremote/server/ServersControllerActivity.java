@@ -47,6 +47,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -55,6 +56,7 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -75,9 +77,11 @@ import android.widget.Toast;
  */
 public class ServersControllerActivity extends Activity {
 
+	public static final String START_ON_STARTUP_KEY = "startOnStartup";
 	/** MENU's constants. */
 	private static final int QUIT = 0;
 	private static final int FINISH = 1;
+	private static final int START_ON_STARTUP = 2;
 
 	private static final String LOGTAG = ServersControllerActivity.class
 			.getSimpleName();
@@ -151,6 +155,11 @@ public class ServersControllerActivity extends Activity {
 			// representation of that from the raw service object.
 			serviceMessenger = new Messenger(service);
 			Log.d(this.getClass().getSimpleName(), "attached to service");
+			if (getStartOnStartup()) {
+				requestStartMng();
+				requestStartVnc();
+			}
+
 			sendMessageToService(ServiceAction.GET_ALL_SERVER_STATUS, null);
 		}
 
@@ -233,16 +242,7 @@ public class ServersControllerActivity extends Activity {
 		findViewById(R.id.Button01).setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View arg0) {
-				Bundle data = new Bundle();
-				vncPort = getIntIfPossibleAndUpdateCache(R.id.vncPort, vncPort);
-				data.putInt(PORT_BUNDLE_KEY, vncPort);
-				Spinner deviceType = (Spinner) findViewById(R.id.deviceType);
-				int position = deviceType.getSelectedItemPosition(); 
-				// 0 => mobile, 1 => tablet
-				int scaleFactor = (position == 0)?100:50;
-				data.putInt(SCALE_FACTOR_BUNDLE_KEY, scaleFactor);
-				
-				sendMessageToService(ServiceAction.START_VNC, data);
+				ServersControllerActivity.this.requestStartVnc();
 			}
 		});
 		findViewById(R.id.Button02).setOnClickListener(new OnClickListener() {
@@ -256,11 +256,7 @@ public class ServersControllerActivity extends Activity {
 				new OnClickListener() {
 					@Override
 					public void onClick(View arg0) {
-						Bundle data = new Bundle(1);
-						mngPort = getIntIfPossibleAndUpdateCache(R.id.mngPort, mngPort);
-						data.putInt(PORT_BUNDLE_KEY, mngPort);
-
-						sendMessageToService(ServiceAction.START_MNG, data);
+						ServersControllerActivity.this.requestStartMng();
 					}
 				});
 		findViewById(R.id.ButtonGestionStop).setOnClickListener(
@@ -272,6 +268,28 @@ public class ServersControllerActivity extends Activity {
 				});
 		// TODO R: Set device type depending on the screen size 
 	}
+	
+	private void requestStartMng() {
+		Bundle data = new Bundle(1);
+		mngPort = getIntIfPossibleAndUpdateCache(R.id.mngPort, mngPort);
+		data.putInt(PORT_BUNDLE_KEY, mngPort);
+
+		sendMessageToService(ServiceAction.START_MNG, data);
+	}
+	
+	private void requestStartVnc() {
+		Bundle data = new Bundle();
+		vncPort = getIntIfPossibleAndUpdateCache(R.id.vncPort, vncPort);
+		data.putInt(PORT_BUNDLE_KEY, vncPort);
+		Spinner deviceType = (Spinner) findViewById(R.id.deviceType);
+		int position = deviceType.getSelectedItemPosition(); 
+		// 0 => mobile, 1 => tablet
+		int scaleFactor = (position == 0)?100:50;
+		data.putInt(SCALE_FACTOR_BUNDLE_KEY, scaleFactor);
+		
+		sendMessageToService(ServiceAction.START_VNC, data);
+	}
+
 
 	private int getIntIfPossibleAndUpdateCache(int rId, Integer cache){
 		EditText editText = (EditText) findViewById(rId);
@@ -361,10 +379,23 @@ public class ServersControllerActivity extends Activity {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.menu, menu);
 
-		menu.add(0, QUIT, 0, "Close activity");
-		menu.add(0, FINISH, 1, "Stop all");
+		menu.add(0, QUIT, QUIT, "Close activity");
+		menu.add(0, FINISH, FINISH, "Stop all");
+		menu.add(0, START_ON_STARTUP, START_ON_STARTUP, "Start on startup");
 
 		return true;
+	}
+	
+	private boolean getStartOnStartup() {
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		return prefs.getBoolean(START_ON_STARTUP_KEY, false);
+	}
+	
+	private void setStartOnStartup(boolean value){
+		SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putBoolean(START_ON_STARTUP_KEY, value);
+		editor.commit();
 	}
 
 	/**
@@ -464,6 +495,15 @@ public class ServersControllerActivity extends Activity {
 			stopService(new Intent(
 					ServersControllerService.class.getCanonicalName()));
 			finish();
+			break;
+		case START_ON_STARTUP:
+			setStartOnStartup(!getStartOnStartup());
+			if (getStartOnStartup()) {
+				showTextOnScreen("Set servers to start on application startup");
+			} else{
+				showTextOnScreen("Set servers to NOT start");
+			}
+			
 			break;
 		}
 		return true;

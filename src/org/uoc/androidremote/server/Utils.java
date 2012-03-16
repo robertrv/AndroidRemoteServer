@@ -2,6 +2,7 @@ package org.uoc.androidremote.server;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 
@@ -113,8 +114,52 @@ public class Utils {
 			throws Exception {
 		os.write((command + "\n").getBytes("ASCII"));
 	}
+	
+	/**
+	 * <p>Execute the command as super user</p> 
+	 * <p><strong>NOTE</strong>Just works with rooted devices!</p>
+	 * @param command
+	 * 	the command to be executed
+	 * @return
+	 * 	The result in the shell console with both, the standard output and the 
+	 * standard error as strings
+	 * @throws Exception
+	 */
+	public static CommandResult executeAsSu(String command) throws Exception {
+		Process process = Runtime.getRuntime().exec("su");
+		OutputStream os = process.getOutputStream();
+		
+		os.write((command + "\nexit\n").getBytes("ASCII"));
 
-	public static String executeCommand(String command) throws Exception {
+		// reads stdError
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+				process.getErrorStream()));
+		String error = readBufferedReader(reader);
+
+		// Reads stdout.
+		reader = new BufferedReader(new InputStreamReader(
+				process.getInputStream()));
+		String output = readBufferedReader(reader);
+
+		// Waits for the command to finish.
+		process.waitFor();
+
+		return new CommandResult(output, error);
+	}
+
+	private static String readBufferedReader(BufferedReader reader)
+			throws IOException {
+		int read;
+		char[] buffer = new char[4096];
+		StringBuffer output = new StringBuffer();
+		while ((read = reader.read(buffer)) > 0) {
+			output.append(buffer, 0, read);
+		}
+		reader.close();
+		return output.toString();
+	}
+
+	public static CommandResult executeCommand(String command) throws Exception {
 		// Executes the command.
 		Process process = Runtime.getRuntime().exec(command);
 
@@ -123,18 +168,31 @@ public class Utils {
 		// process.getOutputStream().
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 				process.getInputStream()));
-		int read;
-		char[] buffer = new char[4096];
-		StringBuffer output = new StringBuffer();
-		while ((read = reader.read(buffer)) > 0) {
-			output.append(buffer, 0, read);
-		}
-		reader.close();
+		String output = readBufferedReader(reader);
 
 		// Waits for the command to finish.
 		process.waitFor();
 
-		return output.toString();
+		return new CommandResult(output, null);
+	}
+	
+	static class CommandResult {
+		private String stdOutput;
+		private String stdError;
+		
+		public String getStdOutput() {
+			return stdOutput;
+		}
+
+		public String getStdError() {
+			return stdError;
+		}
+
+		public CommandResult(String stdOutput, String stdError) {
+			super();
+			this.stdOutput = stdOutput;
+			this.stdError = stdError;
+		}
 	}
 
 }

@@ -20,8 +20,10 @@ import org.uoc.androidremote.operations.ApplicationsRunning;
 import org.uoc.androidremote.operations.InstallApplication;
 import org.uoc.androidremote.operations.LocationOperation;
 import org.uoc.androidremote.operations.Operation;
+import org.uoc.androidremote.operations.OperationResult;
 import org.uoc.androidremote.operations.Reboot;
 import org.uoc.androidremote.operations.ServicesRunning;
+import org.uoc.androidremote.server.Utils.CommandResult;
 
 import android.app.ActivityManager;
 import android.app.ActivityManager.RunningAppProcessInfo;
@@ -120,7 +122,8 @@ public class ManagementServer extends Thread {
 						os.writeObject(reboot);
 						break;
 					case Operation.OP_INSTALL_APPLICATION:
-						Operation result = installApplication((InstallApplication)o);
+						OperationResult result = 
+							installApplication((InstallApplication) o);
 						os.writeObject(result);
 						break;
 					case Operation.OP_CLOSE:
@@ -163,33 +166,48 @@ public class ManagementServer extends Thread {
 		}
 	}
 
-	private Operation installApplication(InstallApplication installAppOperation) {
-		Operation result = new Operation(Operation.OP_INSTALL_APPLICATION,"");
+	private OperationResult installApplication(InstallApplication installAppOperation) {
+		OperationResult result = new OperationResult();
+		String path = context.getFilesDir().getAbsolutePath()
+				+ File.separator + installAppOperation.getFileName();
 		try {
-			Process sh = Runtime.getRuntime().exec("su");
-			OutputStream os = sh.getOutputStream();
-			
 			byte[] buffer = installAppOperation.getFile();
 			
-			String path = context.getFilesDir().getAbsolutePath()
-					+ File.separator + installAppOperation.getFileName();
-
 			FileOutputStream fos = new FileOutputStream(path);
 			fos.write(buffer);
 			fos.close();
 
-			Utils.writeCommand(os, "chmod 777 " + path);
-			Utils.writeCommand(os, "pm install -r "+path);
+			Utils.executeAsSu("chmod 777 " + path);
 
-//			Utils.writeCommand(os, "rm "+path);
-			
-			result.setMessage("Sucessfully installed");
+			if (!checkCommandResultAndSetResultMessage(result, 
+					Utils.executeAsSu("pm install -r "+path))) {
+				return result;
+			}
+
+			result.setOkMessage("Sucessfully installed");
 			Log.d(LOGTAG, "Sucessfully installed application on path: "+path);
 		} catch (Exception e) {
-			result.setMessage("Exception: " + e.getMessage());
+			result.setKoException(e);
 			Log.e(LOGTAG, "Error trying to reboot device", e);
+		} finally {
+			try {
+				Utils.executeAsSu("rm "+path);
+			} catch (Exception ignored) {
+				ignored.printStackTrace();
+			}
 		}
 		return result;
+	}
+
+	private boolean checkCommandResultAndSetResultMessage(OperationResult result,
+			CommandResult execResult) {
+		if (execResult.getStdOutput() == null || !execResult.getStdOutput().contains("Success")) {
+			result.setKoMessage(execResult.getStdError()
+					+ execResult.getStdOutput());
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	/**
