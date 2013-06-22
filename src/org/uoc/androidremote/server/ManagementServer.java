@@ -130,6 +130,9 @@ public class ManagementServer extends Thread {
 						os.writeObject(new String("Conexión cerrada"));
 						Utils.showClientDisconnected(context);
 						break;
+					case Operation.OP_ADVICE_SESSION_END:
+						// TODO: Clean current state, maybe save installed apps ?
+						break;
 					default:
 						break;
 					}
